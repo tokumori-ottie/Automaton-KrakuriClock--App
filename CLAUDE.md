@@ -10,6 +10,12 @@
 
 ---
 
+## Related Documentation
+
+- **[REQUIREMENTS.md](./REQUIREMENTS.md)** — 要求仕様書 (Japanese requirements specification v1.0): full product spec including wizard steps, animation types, music tracks, data schema, UI/UX guidelines, and future roadmap.
+
+---
+
 ## Repository Structure
 
 ```
@@ -19,7 +25,8 @@
 ├── manifest.json     # PWA manifest (portrait, standalone display)
 ├── icon-192.png      # PWA icon (192×192)
 ├── icon-512.png      # PWA icon (512×512)
-└── README.md         # Minimal: "- からくり時計作成アプリ"
+├── README.md         # Minimal: "- からくり時計作成アプリ"
+└── REQUIREMENTS.md   # 要求仕様書 (full product requirements, Japanese)
 ```
 
 **No build system. No package.json. No dependencies.** This is a zero-dependency, static-file web application.
