@@ -946,6 +946,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
           <div class="color-group">
             <div class="color-group-label">🔢 すうじ</div>
             <div class="num-style-row" id="numStyleGrid"></div>
+            <div class="color-group-label" style="margin-top:10px;">🎨 もじの いろ</div>
+            <div class="color-row-big" id="numColorRow"></div>
           </div>
         </div>
       </div>
@@ -1142,6 +1144,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
 const FACE_COLORS  = ['#ffffff','#fff9c4','#fce4ec','#e8f5e9','#e3f2fd','#f3e5f5','#ffe0b2','#d7f5ff'];
 const HAND_COLORS  = ['#ff6b6b','#4d96ff','#6bcb77','#ffd93d','#c77dff','#ff9a3c','#333333','#ffffff'];
 const FRAME_COLORS = ['#ffd93d','#ff6b6b','#4d96ff','#6bcb77','#c77dff','#ff9a3c','#a8886c','#555555'];
+const NUM_COLORS   = ['#444444','#ffffff','#000000','#ff6b6b','#4d96ff','#6bcb77','#ffd93d','#c77dff'];
 const NUM_STYLES   = [
   {id:'arabic',label:'1・2・3'},{id:'roman',label:'Ⅰ・Ⅱ・Ⅲ'},
   {id:'dots',  label:'●  ●●'},{id:'none', label:'（なし）'},
@@ -1170,7 +1173,7 @@ const MUSICS=[
 const ROMAN=['','Ⅰ','Ⅱ','Ⅲ','Ⅳ','Ⅴ','Ⅵ','Ⅶ','Ⅷ','Ⅸ','Ⅹ','Ⅺ','Ⅻ'];
 const MAX=5;
 
-let draft={name:'',faceColor:'#ffffff',handColor:'#ff6b6b',frameColor:'#ffd93d',numberStyle:'arabic',character:'🐻',anims:['dance'],music:'chime'};
+let draft={name:'',faceColor:'#ffffff',handColor:'#ff6b6b',frameColor:'#ffd93d',numColor:'#444444',numberStyle:'arabic',character:'🐻',anims:['dance'],music:'chime'};
 let wizStep=1;
 let playData=null,playReal=true,playH=12,playM=0;
 let tickId=null,karTimer=null,lastMin=-1,audioCtx=null;
@@ -1194,7 +1197,7 @@ function goTo(toId,fromId,dir='forward'){
 
 /* WIZARD */
 function startWizard(){
-  draft={name:'',faceColor:'#ffffff',handColor:'#ff6b6b',frameColor:'#ffd93d',numberStyle:'arabic',character:'🐻',anims:['dance'],music:'chime',faceImage:null,charImage:null};
+  draft={name:'',faceColor:'#ffffff',handColor:'#ff6b6b',frameColor:'#ffd93d',numColor:'#444444',numberStyle:'arabic',character:'🐻',anims:['dance'],music:'chime',faceImage:null,charImage:null};
   wizStep=1;
   buildWizUI();
   const ni=document.getElementById('nameInput'); if(ni) ni.value='';
@@ -1210,6 +1213,7 @@ function buildWizUI(){
   buildColorRowBig('faceColorRow',  FACE_COLORS,  'faceColor');
   buildColorRowBig('handColorRow',  HAND_COLORS,  'handColor');
   buildColorRowBig('frameColorRow', FRAME_COLORS, 'frameColor');
+  buildColorRowBig('numColorRow',   NUM_COLORS,   'numColor');
   buildNumGrid(); buildCharGrid(); buildAnimList(); buildMusicGrid();
 }
 function buildColorRow(id,colors,key){
@@ -1677,13 +1681,13 @@ function drawClockOnCraftCanvas(ctx, data, S, CX, CY, R){
     const ang=i/12*Math.PI*2-Math.PI/2;
     const nx=CX+Math.cos(ang)*R*.76, ny=CY+Math.sin(ang)*R*.76;
     if(data.numberStyle==='arabic'){
-      ctx.font=`bold ${R*.13}px Nunito,sans-serif`; ctx.fillStyle='#444';
+      ctx.font=`bold ${R*.13}px Nunito,sans-serif`; ctx.fillStyle=data.numColor||'#444444';
       ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(String(i),nx,ny);
     } else if(data.numberStyle==='roman'){
-      ctx.font=`bold ${R*.10}px Nunito,sans-serif`; ctx.fillStyle='#444';
+      ctx.font=`bold ${R*.10}px Nunito,sans-serif`; ctx.fillStyle=data.numColor||'#444444';
       ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(ROMAN2[i],nx,ny);
     } else if(data.numberStyle==='dots'){
-      ctx.fillStyle='#bbb'; ctx.beginPath(); ctx.arc(nx,ny,i%3===0?4:2.5,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle=data.numColor||'#bbbbbb'; ctx.beginPath(); ctx.arc(nx,ny,i%3===0?4:2.5,0,Math.PI*2); ctx.fill();
     }
     const x1=CX+Math.cos(ang)*R*.87, y1=CY+Math.sin(ang)*R*.87;
     const x2=CX+Math.cos(ang)*R*.96, y2=CY+Math.sin(ang)*R*.96;
@@ -2439,7 +2443,7 @@ function updateWizMiniPreview(){
       const ang=i/12*Math.PI*2-Math.PI/2;
       const nx=CX+Math.cos(ang)*R*.72,ny=CY+Math.sin(ang)*R*.72;
       ctx.font=`bold ${R*.28}px Nunito,sans-serif`;
-      ctx.fillStyle='#555';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillStyle=draft.numColor||'#444444';ctx.textAlign='center';ctx.textBaseline='middle';
       ctx.fillText(draft.numberStyle==='dots'?'●':String(i),nx,ny);
     }
     ctx.restore();
@@ -2662,11 +2666,11 @@ function drawClock(canvas,data,useReal,tH,tM,tS){
     const ang=i/12*Math.PI*2-Math.PI/2;
     const nx=CX+Math.cos(ang)*R*.78,ny=CY+Math.sin(ang)*R*.78;
     if(data.numberStyle==='arabic'){
-      ctx.font=`bold ${R*.145}px Nunito,sans-serif`;ctx.fillStyle='#444';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String(i),nx,ny);
+      ctx.font=`bold ${R*.145}px Nunito,sans-serif`;ctx.fillStyle=data.numColor||'#444444';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String(i),nx,ny);
     }else if(data.numberStyle==='roman'){
-      ctx.font=`bold ${R*.11}px Nunito,sans-serif`;ctx.fillStyle='#444';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(ROMAN[i],nx,ny);
+      ctx.font=`bold ${R*.11}px Nunito,sans-serif`;ctx.fillStyle=data.numColor||'#444444';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(ROMAN[i],nx,ny);
     }else if(data.numberStyle==='dots'){
-      ctx.fillStyle='#bbb';ctx.beginPath();ctx.arc(nx,ny,i%3===0?5:3,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=data.numColor||'#bbbbbb';ctx.beginPath();ctx.arc(nx,ny,i%3===0?5:3,0,Math.PI*2);ctx.fill();
     }
     const x1=CX+Math.cos(ang)*R*.88,y1=CY+Math.sin(ang)*R*.88,x2=CX+Math.cos(ang)*R*.97,y2=CY+Math.sin(ang)*R*.97;
     ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.strokeStyle='#ddd';ctx.lineWidth=1.5;ctx.stroke();
@@ -2971,16 +2975,16 @@ function drawSplitOverlay(canvas){
 
       if(data.numberStyle==='arabic'){
         ctx.font=`bold ${R*.13}px Nunito,sans-serif`;
-        ctx.fillStyle='#333';
+        ctx.fillStyle=data.numColor||'#444444';
         ctx.textAlign='center';ctx.textBaseline='middle';
         ctx.fillText(String(n),nx,ny);
       } else if(data.numberStyle==='roman'){
         ctx.font=`bold ${R*.1}px Nunito,sans-serif`;
-        ctx.fillStyle='#333';
+        ctx.fillStyle=data.numColor||'#444444';
         ctx.textAlign='center';ctx.textBaseline='middle';
         ctx.fillText(ROMAN[n],nx,ny);
       } else if(data.numberStyle==='dots'){
-        ctx.fillStyle='#999';
+        ctx.fillStyle=data.numColor||'#999999';
         ctx.beginPath();ctx.arc(nx,ny,n%3===0?4:2.5,0,Math.PI*2);ctx.fill();
       }
       // 目盛り線
