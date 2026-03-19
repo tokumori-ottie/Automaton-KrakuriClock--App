@@ -1194,9 +1194,12 @@ function goTo(toId,fromId,dir='forward'){
 
 /* WIZARD */
 function startWizard(){
-  draft={name:'',faceColor:'#ffffff',handColor:'#ff6b6b',frameColor:'#ffd93d',numberStyle:'arabic',character:'🐻',anims:['dance']};
+  draft={name:'',faceColor:'#ffffff',handColor:'#ff6b6b',frameColor:'#ffd93d',numberStyle:'arabic',character:'🐻',anims:['dance'],music:'chime',faceImage:null,charImage:null};
   wizStep=1;
   buildWizUI();
+  const ni=document.getElementById('nameInput'); if(ni) ni.value='';
+  const fp=document.getElementById('photoPreview'); if(fp){fp.src='';fp.style.display='none';}
+  const cp=document.getElementById('charPhotoPreview'); if(cp){cp.src='';cp.style.display='none';}
   showWizStep(1);
   goTo('pgWiz','pgTop');
   const footer=document.getElementById('wizFooter');
