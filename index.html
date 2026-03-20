@@ -1564,10 +1564,11 @@ function buildAnimList(){
 }
 /* ===== インタラクティブ製作演出（DOM版） ===== */
 const CRAFT_CFG = {
-  2: {type:'paint',  inst:'👆 ゆびで なぞって ぬろう！',   sound:'paint',  need:1200},
-  3: {type:'hammer', inst:'🔨 タップして くぎを うとう！',  sound:'hammer', need:5},
-  4: {type:'place',  inst:'👆 タップして キャラを おこう！',sound:'gear',  need:3},
-  5: {type:'paint',  inst:'🎵 なぞって おんがくを セット！',sound:'paint', need:800},
+  1: {type:'block',  inst:'🕰️ ブロックを はめて かたちを きめよう！', sound:'snap',   need:1},
+  2: {type:'paint',  inst:'🎨 ゆびで ぬりたくろう！',                  sound:'paint',  need:1200},
+  3: {type:'hammer', inst:'🔨 タップして はりを つけよう！',            sound:'hammer', need:5},
+  4: {type:'place',  inst:'👆 タップして キャラを おこう！',            sound:'gear',   need:3},
+  5: {type:'gear',   inst:'⚙️ タップして ぜんまいを まこう！',          sound:'gear',   need:3},
 };
 
 let craftAnimId=null, craftT=0;
@@ -1634,7 +1635,10 @@ function playCraftAnim(fromStep, cb){
   const sublbl=document.getElementById('craftSublabel');
   const inst=document.getElementById('craftInstruction');
   const bar=document.getElementById('craftProgressBar');
-  if(sublbl) sublbl.textContent='やってみよう！';
+  if(sublbl){
+    const sublblMap={paint:'ぬってみよう！',hammer:'うってみよう！',block:'はめてみよう！',place:'おいてみよう！',gear:'まいてみよう！'};
+    sublbl.textContent=sublblMap[cfg.type]||'やってみよう！';
+  }
   if(inst) inst.textContent=cfg.inst;
   if(bar) bar.style.width='0%';
   // カウント表示初期化
@@ -2353,6 +2357,7 @@ function playCountSound(n){
 function runCheckPhase(){
   showShipPhase(2);
   const items=[
+    {ico:'🕰️',label:'とけいのかたち'},
     {ico:'⭕',label:'もじばんの いろ'},
     {ico:'📍',label:'はりの いろ'},
     {ico:'🔲',label:'わくの いろ'},
