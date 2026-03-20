@@ -852,6 +852,70 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
 
 /* ===== pgWiz padding-bottom を大きなボタンに合わせて広げる ===== */
 #pgWiz .page-inner{padding-bottom:120px;}
+
+/* ===== クラフト「とばす」ボタン ===== */
+.craft-skip-btn{
+  position:absolute;top:14px;right:14px;
+  background:rgba(0,0,0,.07);border:none;border-radius:20px;
+  padding:8px 14px;font-family:'Fredoka One',cursive;
+  font-size:.85rem;color:#888;cursor:pointer;z-index:100;
+  transition:background .15s;
+}
+.craft-skip-btn:active{background:rgba(0,0,0,.15);}
+
+/* ===== プリセット名ボタン ===== */
+.preset-names{display:flex;flex-direction:column;gap:10px;margin-top:16px;}
+.preset-name-btn{
+  background:#fff;border:3px solid var(--yellow);border-radius:16px;
+  padding:14px 20px;font-family:'Fredoka One',cursive;font-size:1.3rem;
+  color:#333;cursor:pointer;transition:all .15s;
+  box-shadow:0 3px 0 rgba(0,0,0,.1);text-align:center;
+}
+.preset-name-btn:active{transform:translateY(3px);box-shadow:none;}
+.preset-name-btn.chosen{background:var(--yellow);color:#fff;border-color:var(--orange);}
+.preset-name-btn.custom-btn{background:#f5f5f5;border-color:#ddd;color:#666;font-size:1.05rem;}
+
+/* ===== クラフト手ガイド ===== */
+.craft-guide-hand{
+  position:absolute;font-size:2.2rem;pointer-events:none;
+  z-index:50;display:none;
+}
+@keyframes guideSwipe{
+  0%  {transform:translate(10px,10px) scale(1);}
+  50% {transform:translate(110px,30px) scale(1.15);}
+  100%{transform:translate(10px,10px) scale(1);}
+}
+@keyframes guideTap{
+  0%  {transform:translateY(0) scale(1);}
+  30% {transform:translateY(28px) scale(.88);}
+  65% {transform:translateY(0) scale(1);}
+  100%{transform:translateY(0) scale(1);}
+}
+.craft-guide-hand.anim-swipe{animation:guideSwipe 1.6s ease-in-out infinite;}
+.craft-guide-hand.anim-tap  {animation:guideTap 1.2s ease-in-out infinite;}
+
+/* ===== タップゾーン光るボーダー ===== */
+@keyframes glowPulse{
+  0%  {box-shadow:0 0 0 3px var(--yellow),0 0 14px 5px rgba(255,217,61,.3);}
+  50% {box-shadow:0 0 0 6px var(--yellow),0 0 26px 10px rgba(255,217,61,.55);}
+  100%{box-shadow:0 0 0 3px var(--yellow),0 0 14px 5px rgba(255,217,61,.3);}
+}
+.cs-overlay.glow-hint{
+  border-radius:50%;
+  animation:glowPulse 1.1s ease-in-out infinite;
+}
+
+/* ===== トースト通知 ===== */
+#toastEl{
+  position:fixed;top:20px;left:50%;
+  transform:translateX(-50%) translateY(-100px);
+  background:#333;color:#fff;
+  padding:13px 22px;border-radius:22px;
+  font-family:'Fredoka One',cursive;font-size:1rem;
+  z-index:99999;transition:transform .35s cubic-bezier(.4,0,.2,1);
+  max-width:290px;text-align:center;pointer-events:none;
+  box-shadow:0 6px 20px rgba(0,0,0,.25);
+}
 /* ===== INSTALL BANNER ===== */
 #installBanner{
   display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
@@ -866,6 +930,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
 </head>
 <body>
 <canvas id="confettiCanvas"></canvas>
+<div id="toastEl"></div>
 <div id="app">
 
   <!-- TOP -->
@@ -904,7 +969,13 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
       <div class="step" id="s1">
         <div class="step-title">📛 なまえは？</div>
         <div class="step-hint">✏️ とけいに なまえを つけよう！</div>
-        <input class="name-input" id="nameInput" type="text" placeholder="れい：ぼくのとけい" maxlength="12">
+        <div class="preset-names" id="presetNames">
+          <button class="preset-name-btn" onclick="selectPresetName('ぼくのとけい',this)">🕰️ ぼくのとけい</button>
+          <button class="preset-name-btn" onclick="selectPresetName('わたしのとけい',this)">🕰️ わたしのとけい</button>
+          <button class="preset-name-btn" onclick="selectPresetName('ともだちのとけい',this)">🕰️ ともだちのとけい</button>
+          <button class="preset-name-btn custom-btn" id="customNameBtn" onclick="showNameInput(this)">✏️ じぶんでかく</button>
+        </div>
+        <input class="name-input" id="nameInput" type="text" placeholder="れい：ぼくのとけい" maxlength="12" style="display:none;margin-top:12px;">
       </div>
 
       <!-- s2 テーマカラー（文字盤＋わく） -->
@@ -1049,6 +1120,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
 
 <!-- CRAFT PAGE (DOM版・Canvas不使用) -->
 <div id="craftPage">
+  <button class="craft-skip-btn" id="craftSkipBtn" onclick="craftSkip()">とばす →</button>
   <div class="craft-sublabel" id="craftSublabel">やってみよう！</div>
   <div class="craft-count-big" id="craftCountBig"></div>
   <div class="craft-count-label" id="craftCountLabel"></div>
@@ -1078,6 +1150,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
 
     <!-- エフェクト表示エリア -->
     <div class="cs-fx" id="csFx"></div>
+    <!-- 手ガイド -->
+    <div class="craft-guide-hand" id="craftGuideHand">👆</div>
   </div>
 
   <div class="craft-instruction" id="craftInstruction"></div>
@@ -1232,6 +1306,7 @@ function buildColorRowBig(id,colors,key){
       row.querySelectorAll('.cdot').forEach(x=>{ x.style.borderColor='transparent'; x.style.transform=''; });
       d.style.borderColor='#333'; d.style.transform='scale(1.22)';
       refreshPreview();
+      if(navigator.vibrate) navigator.vibrate(30);
       spawnSparkle(d.getBoundingClientRect().left+22,d.getBoundingClientRect().top+22);
     };
     row.appendChild(d);
@@ -1267,6 +1342,7 @@ function buildCharGrid(){
       if(prev){prev.src='';prev.style.display='none';}
       g.querySelectorAll('.char-btn').forEach(x=>x.classList.remove('chosen'));
       d.classList.add('chosen');
+      if(navigator.vibrate) navigator.vibrate(30);
       spawnSparkle(d.getBoundingClientRect().left+34,d.getBoundingClientRect().top+34);
     };
     g.appendChild(d);
@@ -1314,6 +1390,26 @@ let craftGearN=0, craftGearAng=0;
 let currentFromStep=2;
 let _craftAC=null;
 
+function craftSkip(){
+  if(craftDone) return;
+  craftDone=true;
+  if(craftAnimId){cancelAnimationFrame(craftAnimId);craftAnimId=null;}
+  const page=document.getElementById('craftPage');
+  if(page) page.classList.remove('show');
+  const hg=document.getElementById('craftGuideHand'); if(hg) hg.style.display='none';
+  if(craftCB){craftCB();craftCB=null;}
+}
+function _showHandGuide(type){
+  const hg=document.getElementById('craftGuideHand'); if(!hg) return;
+  hg.style.display='block';
+  hg.className='craft-guide-hand';
+  if(type==='paint'){ hg.textContent='👆'; hg.classList.add('anim-swipe'); hg.style.left='20px'; hg.style.top='90px'; }
+  else if(type==='hammer'){ hg.textContent='👆'; hg.classList.add('anim-tap'); hg.style.left='85px'; hg.style.top='70px'; }
+  else if(type==='place'){ hg.textContent='👆'; hg.classList.add('anim-tap'); hg.style.left='85px'; hg.style.top='90px'; }
+}
+function _hideHandGuide(){
+  const hg=document.getElementById('craftGuideHand'); if(hg) hg.style.display='none';
+}
 function playCraftAnim(fromStep, cb){
   const cfg = CRAFT_CFG[fromStep];
   if(!cfg){ cb(); return; }
@@ -1364,6 +1460,12 @@ function playCraftAnim(fromStep, cb){
     if(labelEl) labelEl.textContent='ブロックを うごかして はめよう';
   }
   page.classList.add('show');
+
+  // 手ガイド表示
+  _showHandGuide(cfg.type);
+  // タップゾーン光るボーダー
+  const _ov=document.getElementById('csOverlay');
+  if(_ov) _ov.classList.add('glow-hint');
 
   // タイプ別セットアップ
   if(cfg.type==='paint')  _craftSetupPaint(cfg);
@@ -1439,7 +1541,7 @@ function _craftSetupPaint(cfg){
     const cl=e.touches?e.touches[0]:e;
     return{x:(cl.clientX-r.left)/r.width*200, y:(cl.clientY-r.top)/r.height*200};
   }
-  const onStart=e=>{ e.preventDefault(); craftPainting=true; const p=getPos(e); craftPX=p.x; craftPY=p.y; craftPaintPts.push(p); };
+  const onStart=e=>{ e.preventDefault(); craftPainting=true; const p=getPos(e); craftPX=p.x; craftPY=p.y; craftPaintPts.push(p); _hideHandGuide(); overlay.classList.remove('glow-hint'); };
   const onMove=e=>{
     e.preventDefault(); if(!craftPainting) return;
     const p=getPos(e);
@@ -1474,6 +1576,8 @@ function _craftSetupHammer(cfg){
   if(!overlay) return;
   const onTap=e=>{
     e.preventDefault(); craftHammerN++;
+    _hideHandGuide(); overlay.classList.remove('glow-hint');
+    if(navigator.vibrate) navigator.vibrate(40);
     if(tool){
       tool.classList.remove('hammering');
       void tool.offsetWidth;
@@ -1548,6 +1652,8 @@ function _craftSetupPlace(cfg){
   if(face) face.appendChild(charEl);
   const onTap=e=>{
     e.preventDefault(); craftPlaceN++;
+    _hideHandGuide(); if(overlay) overlay.classList.remove('glow-hint');
+    if(navigator.vibrate) navigator.vibrate(40);
     const a=Math.min(craftPlaceN/cfg.need,1);
     charEl.style.opacity=String(a);
     charEl.style.transform=`translate(-50%,-50%) scale(${0.5+a*0.5})`;
@@ -1967,13 +2073,32 @@ function showWizStep(n, withAnim){
     doSwitch();
   }
 }
+function selectPresetName(name,btn){
+  draft.name=name;
+  document.querySelectorAll('.preset-name-btn').forEach(b=>b.classList.remove('chosen'));
+  if(btn) btn.classList.add('chosen');
+  document.getElementById('nameInput').value=name;
+  if(navigator.vibrate) navigator.vibrate(40);
+  if(btn) spawnSparkle(btn.getBoundingClientRect().left+btn.offsetWidth/2, btn.getBoundingClientRect().top+btn.offsetHeight/2);
+}
+function showNameInput(btn){
+  const inp=document.getElementById('nameInput');
+  inp.style.display='block';
+  inp.focus();
+  document.querySelectorAll('.preset-name-btn').forEach(b=>b.classList.remove('chosen'));
+  if(btn) btn.classList.add('chosen');
+}
 function wizNextOrFinish(){
   if(wizStep===5){ startShipSequence(); return; }
-  if(wizStep===1){const nm=document.getElementById('nameInput').value.trim();draft.name=nm||'わたしのとけい';}
+  if(wizStep===1){
+    const inp=document.getElementById('nameInput');
+    const nm=(inp.style.display!=='none')?inp.value.trim():'';
+    draft.name=nm||draft.name||'わたしのとけい';
+  }
   showWizStep(wizStep+1, true);
 }
 function wizNext(){
-  if(wizStep===1){const nm=document.getElementById('nameInput').value.trim();draft.name=nm||'わたしのとけい';}
+  if(wizStep===1){const nm=document.getElementById('nameInput').value.trim();draft.name=nm||draft.name||'わたしのとけい';}
   if(wizStep<5) showWizStep(wizStep+1, true);
 }
 function wizAutoNext(){if(wizStep<5) showWizStep(wizStep+1, true);}
@@ -1991,8 +2116,7 @@ function wizBack(){
 /* ===== 出荷シーケンス ===== */
 function startShipSequence(){
   const saved=loadSaved();
-  if(saved.length>=MAX){alert(`ほぞんできるのは ${MAX}こまでだよ！
-ふるいとけいを けしてね 🗑️`);return;}
+  if(saved.length>=MAX){showToast(`ほぞんできるのは ${MAX}こまでだよ！ ふるいとけいを けしてね 🗑️`);return;}
 
   const modal = document.getElementById('shipModal');
   modal.classList.add('show');
@@ -2210,10 +2334,12 @@ function showDonePage(cl){
   // ファンファーレ
   setTimeout(()=>playDoneFanfare(), 600);
 
-  // 紙吹雪を連続で打ち上げ
+  // 紙吹雪を連続で打ち上げ（5回）
   launchConfetti();
-  setTimeout(()=>launchConfetti(), 800);
-  setTimeout(()=>launchConfetti(), 1600);
+  setTimeout(()=>launchConfetti(), 700);
+  setTimeout(()=>launchConfetti(), 1400);
+  setTimeout(()=>launchConfetti(), 2100);
+  setTimeout(()=>launchConfetti(), 2800);
 }
 
 function playDoneFanfare(){
@@ -2363,7 +2489,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 function wizFinish(){
   const saved=loadSaved();
-  if(saved.length>=MAX){alert(`ほぞんできるのは ${MAX}こまでだよ！\nふるいとけいを けしてね 🗑️`);return;}
+  if(saved.length>=MAX){showToast(`ほぞんできるのは ${MAX}こまでだよ！ ふるいとけいを けしてね 🗑️`);return;}
   const cl={...draft,id:Date.now()};
   saved.push(cl);saveSaved(saved);
   const _ds=document.getElementById('doneAuthor'); if(_ds) _ds.textContent=`「${cl.name}」を つくったよ！🎊`;
@@ -2560,7 +2686,29 @@ function openClock(cl, fromId){
   };
   lastMin=-1;karTimer=null;stopTick();
   goTo('pgPlay', fromId);
-  startTick();
+  startTickWithSpinIn();
+}
+function startTickWithSpinIn(){
+  // 入場時: 1秒間だけ針を高速回転させてから実時間に収束
+  const c=document.getElementById('playCanvas');
+  const now=new Date();
+  let spinAngle=0;
+  const startMs=performance.now();
+  const SPIN_DUR=1100; // ms
+  function spinTick(){
+    const elapsed=performance.now()-startMs;
+    if(elapsed<SPIN_DUR){
+      spinAngle+=6; // 高速回転
+      const fakeH=(now.getHours()%12)+(now.getMinutes()/60);
+      const fakeM=(now.getMinutes()+spinAngle/6)%60;
+      drawClock(c,playData,false,fakeH,fakeM,0);
+      document.getElementById('digital').textContent='--:--:--';
+      requestAnimationFrame(spinTick);
+    } else {
+      startTick();
+    }
+  }
+  spinTick();
 }
 function startTick(){
   const c=document.getElementById('playCanvas');
@@ -2624,7 +2772,9 @@ function triggerKarakuri(){
       if(pick!=='split'&&pick!=='door') ch.classList.add(pick);
     }
   }
-  playChime();launchConfetti();
+  playChime();
+  const clockPalette=playData?[playData.faceColor,playData.frameColor,playData.handColor].filter(Boolean):[];
+  launchConfetti(clockPalette);
   karTimer=setTimeout(resetKar,5500);
 }
 function resetKar(){
@@ -2859,8 +3009,9 @@ function drawDoorOverlay(canvas, openAmt, charAlpha){
     ctx.save();
     ctx.globalAlpha=charAlpha;
 
-    // キャラ背景（白い円）
-    const charScale=0.5+charAlpha*0.5;
+    // キャラ背景（白い円）- ポップイン効果: charAlpha<1のとき少しオーバーシュート
+    const rawCS=0.5+charAlpha*0.5;
+    const charScale=charAlpha<1 ? rawCS*(1+Math.sin(charAlpha*Math.PI)*0.3) : 1.0;
     ctx.beginPath();
     ctx.arc(CX,CY,R*0.38*charScale,0,Math.PI*2);
     ctx.fillStyle='rgba(255,255,255,0.95)';
@@ -3205,9 +3356,10 @@ function playChime(){
 const cC=document.getElementById('confettiCanvas');
 const cCtx=cC.getContext('2d');
 let pieces=[],cAF=null;
-function launchConfetti(){
+function launchConfetti(palette){
   cC.width=window.innerWidth;cC.height=window.innerHeight;pieces=[];
-  const cols=['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#c77dff','#ff9a3c'];
+  const defaultCols=['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#c77dff','#ff9a3c'];
+  const cols=palette&&palette.length?[...palette,...defaultCols]:defaultCols;
   for(let i=0;i<90;i++) pieces.push({
     x:Math.random()*cC.width,y:-10,r:Math.random()*7+4,
     color:cols[Math.floor(Math.random()*cols.length)],
@@ -3227,6 +3379,15 @@ function animC(f){
     cCtx.restore();
   });
   if(alive&&f<200)cAF=requestAnimationFrame(()=>animC(f+1));else cCtx.clearRect(0,0,cC.width,cC.height);
+}
+
+/* TOAST */
+function showToast(msg){
+  const el=document.getElementById('toastEl'); if(!el) return;
+  el.textContent=msg;
+  el.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(showToast._t);
+  showToast._t=setTimeout(()=>{el.style.transform='translateX(-50%) translateY(-100px)';},3000);
 }
 
 /* SPARKLE */
