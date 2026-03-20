@@ -1278,8 +1278,9 @@ const ANIMS=[
   {id:'bounce',ico:'⬆️',label:'ジャンプ', desc:'ぴょんぴょん はねるよ！'},
   {id:'spin',  ico:'🌀',label:'くるくる', desc:'ぐるぐる まわるよ！'},
   {id:'wave',  ico:'👋',label:'ふりふり', desc:'ゆらゆら ふるよ！'},
-  {id:'split', ico:'🔀',label:'4ぶんかつ',desc:'もじばんが4つに わかれてくるくる！'},
-  {id:'door',  ico:'🚪',label:'とびら',   desc:'4まいのとびらが ひらいてとびだす！'},
+  {id:'split',    ico:'🔀',label:'4ぶんかつ', desc:'もじばんが4つに わかれてくるくる！'},
+  {id:'door',     ico:'🚪',label:'とびら',    desc:'4まいのとびらが ひらいてとびだす！'},
+  {id:'hanabira', ico:'🌸',label:'はなびら',  desc:'もじばんが はなびらみたいに ひらいてとびだす！'},
 ];
 const MUSICS=[
   {id:'chime',    ico:'🔔',label:'チャイム',         desc:'シンプルなチャイム音'},
@@ -2802,26 +2803,22 @@ function triggerKarakuri(){
   ch.classList.add('show');
 
   if(playData&&playData.anims.length){
-    // splitが含まれている場合はsplitを優先（単独選択時は必ずsplit）
-    const hasSplit=playData.anims.includes('split');
-    const nonSplit=playData.anims.filter(a=>a!=='split');
-    const hasDoor=playData.anims.includes('door');
-    const nonSpecial=playData.anims.filter(a=>a!=='split'&&a!=='door');
+    // split / door / hanabira はキャンバスで描画するスペシャルアニメーション
+    const SPECIAL=['split','door','hanabira'];
+    const specials=playData.anims.filter(a=>SPECIAL.includes(a));
+    const nonSpecial=playData.anims.filter(a=>!SPECIAL.includes(a));
 
-    if(hasSplit && hasDoor){
-      // 両方ある場合はランダム
-      if(Math.random()<0.5){ ch.classList.remove('show'); startSplitAnim(); }
-      else { ch.classList.remove('show'); startDoorAnim(); }
-    } else if(hasSplit && (nonSplit.length===0 || Math.random()<0.5)){
+    if(specials.length>0 && (nonSpecial.length===0||Math.random()<0.65)){
+      // スペシャルアニメーションからランダム選択
+      const pick=specials[Math.floor(Math.random()*specials.length)];
       ch.classList.remove('show');
-      startSplitAnim();
-    } else if(hasDoor && (nonSpecial.length===0 || Math.random()<0.5)){
-      ch.classList.remove('show');
-      startDoorAnim();
+      if(pick==='split') startSplitAnim();
+      else if(pick==='door') startDoorAnim();
+      else if(pick==='hanabira') startHanabiraAnim();
     } else {
-      const pool=nonSpecial.length>0 ? nonSpecial : playData.anims.filter(a=>a!=='split'&&a!=='door');
+      const pool=nonSpecial.length>0 ? nonSpecial : playData.anims.filter(a=>!SPECIAL.includes(a));
       const pick=pool.length>0 ? pool[Math.floor(Math.random()*pool.length)] : playData.anims[0];
-      if(pick!=='split'&&pick!=='door') ch.classList.add(pick);
+      if(!SPECIAL.includes(pick)) ch.classList.add(pick);
     }
   }
   playChime();
@@ -2835,6 +2832,7 @@ function resetKar(){
   ch.className='char-out';ch.innerHTML='';ch.textContent='';
   stopSplitAnim();
   stopDoorAnim();
+  stopHanabiraAnim();
   karTimer=null;
 }
 
@@ -3100,6 +3098,218 @@ function drawDoorOverlay(canvas, openAmt, charAlpha){
     if(charAlpha>0.9){
       const starPhase=(Date.now()/200)%6;
       ['⭐','✨','🌟'].forEach((em,i)=>{
+        const a=(i/3)*Math.PI*2+starPhase;
+        const sr=R*0.55;
+        ctx.save();
+        ctx.globalAlpha=0.8;
+        ctx.font=`${R*0.18}px serif`;
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(em, CX+Math.cos(a)*sr, CY+Math.sin(a)*sr);
+        ctx.restore();
+      });
+    }
+  }
+
+  // 中央の針（常に表示）
+  ctx.save();
+  ctx.beginPath();ctx.arc(CX,CY,R*.06,0,Math.PI*2);
+  ctx.fillStyle=data.handColor||'#ff6b6b';ctx.fill();
+  ctx.beginPath();ctx.arc(CX,CY,R*.024,0,Math.PI*2);
+  ctx.fillStyle='#fff';ctx.fill();
+  ctx.restore();
+}
+
+/* ===== 花びらからくり ===== */
+// 6枚の花びら扇が交互に回転して開き、キャラが現れる演出（セイコー実機風）
+let hanabiraAnimId=null;
+const HANABIRA_COLORS=['#ffd93d','#ff9a3c','#ff6b6b','#c77dff','#4d96ff','#6bcb77'];
+
+function startHanabiraAnim(){
+  stopHanabiraAnim();
+  stopTick();
+  let openAmt=0;
+  let charAlpha=0;
+  let phase='opening';
+  let frameCount=0;
+
+  const c=document.getElementById('playCanvas');
+  if(!c){ startTick(); return; }
+
+  function frame(){
+    frameCount++;
+    if(!playData){ startTick(); return; }
+    const now=new Date();
+    const sec=playReal?now.getSeconds():0;
+    drawClock(c,playData,playReal,playH,playM,sec);
+
+    if(phase==='opening'){
+      openAmt=Math.min(openAmt+0.028, 1);
+      drawHanabiraOverlay(c, openAmt, 0);
+      if(openAmt>=1){ phase='showing'; }
+
+    } else if(phase==='showing'){
+      charAlpha=Math.min(charAlpha+0.05, 1);
+      drawHanabiraOverlay(c, 1, charAlpha);
+      if(charAlpha>=1 && frameCount>130){ phase='closing'; }
+
+    } else if(phase==='closing'){
+      openAmt=Math.max(openAmt-0.032, 0);
+      charAlpha=Math.max(charAlpha-0.05, 0);
+      drawHanabiraOverlay(c, openAmt, charAlpha);
+      if(openAmt<=0){
+        hanabiraAnimId=null;
+        startTick();
+        return;
+      }
+    }
+    hanabiraAnimId=requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+function stopHanabiraAnim(){
+  if(hanabiraAnimId){
+    cancelAnimationFrame(hanabiraAnimId);
+    hanabiraAnimId=null;
+    const pg=document.getElementById('pgPlay');
+    if(pg&&pg.classList.contains('active')) startTick();
+  }
+}
+
+function drawHanabiraOverlay(canvas, openAmt, charAlpha){
+  const ctx=canvas.getContext('2d');
+  const S=canvas.width, CX=S/2, CY=S/2, R=S/2-8;
+  const data=playData; if(!data) return;
+
+  const N=6;
+  const anglePerPetal=(Math.PI*2)/N;   // 60°/枚
+  const maxRot=anglePerPetal*0.72;     // 最大回転量（隙間が見える量）
+
+  // easeInOut
+  const ease=openAmt<0.5 ? 2*openAmt*openAmt : -1+(4-2*openAmt)*openAmt;
+  const rotAmount=ease*maxRot;
+
+  const innerR=R*0.16; // 中央ハブ半径
+
+  for(let i=0; i<N; i++){
+    const startA=i*anglePerPetal-Math.PI/2;
+    const endA=startA+anglePerPetal;
+    const midA=startA+anglePerPetal/2;
+
+    // 隣り合う花びらが反対方向に開く
+    const dir=(i%2===0)?1:-1;
+
+    ctx.save();
+    ctx.translate(CX,CY);
+    ctx.rotate(rotAmount*dir);
+    ctx.translate(-CX,-CY);
+
+    // 環状扇形（花びら）
+    ctx.beginPath();
+    ctx.arc(CX,CY,R,startA,endA);
+    ctx.arc(CX,CY,innerR,endA,startA,true);
+    ctx.closePath();
+
+    // フェイス色ベースのグラデーション
+    const petalColor=data.faceColor||'#ffffff';
+    const accentColor=HANABIRA_COLORS[i%N];
+    const gx=CX+Math.cos(midA)*R*0.5;
+    const gy=CY+Math.sin(midA)*R*0.5;
+    const grad=ctx.createRadialGradient(CX,CY,innerR*2,gx,gy,R*0.8);
+    grad.addColorStop(0, petalColor+'ee');
+    grad.addColorStop(1, petalColor+'cc');
+    ctx.fillStyle=grad;
+    ctx.fill();
+
+    // カラフルな縁取り（実機フレーム風）
+    ctx.strokeStyle=accentColor;
+    ctx.lineWidth=S*0.013;
+    ctx.stroke();
+
+    // 放射状の装飾線
+    ctx.beginPath();
+    ctx.moveTo(CX+Math.cos(midA)*innerR*1.6, CY+Math.sin(midA)*innerR*1.6);
+    ctx.lineTo(CX+Math.cos(midA)*R*0.85, CY+Math.sin(midA)*R*0.85);
+    ctx.strokeStyle='rgba(0,0,0,0.08)';
+    ctx.lineWidth=2;
+    ctx.setLineDash([3,5]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // 外縁アクセントドット
+    const dotX=CX+Math.cos(midA)*R*0.72;
+    const dotY=CY+Math.sin(midA)*R*0.72;
+    ctx.beginPath();
+    ctx.arc(dotX,dotY,S*0.018,0,Math.PI*2);
+    ctx.fillStyle=accentColor;
+    ctx.globalAlpha=0.75;
+    ctx.fill();
+    ctx.globalAlpha=1;
+
+    ctx.restore();
+  }
+
+  // 中央ハブ（金色の円）
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(CX,CY,innerR,0,Math.PI*2);
+  const hubGrad=ctx.createRadialGradient(CX-innerR*0.3,CY-innerR*0.3,1,CX,CY,innerR);
+  hubGrad.addColorStop(0,'#fffde7');
+  hubGrad.addColorStop(0.6,data.handColor||'#ff6b6b');
+  hubGrad.addColorStop(1,'rgba(0,0,0,0.3)');
+  ctx.fillStyle=hubGrad;
+  ctx.shadowColor='rgba(0,0,0,0.3)';
+  ctx.shadowBlur=6;
+  ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.restore();
+
+  // キャラクター表示
+  if(charAlpha>0){
+    ctx.save();
+    ctx.globalAlpha=charAlpha;
+
+    // ポップイン効果
+    const rawCS=0.5+charAlpha*0.5;
+    const charScale=charAlpha<1 ? rawCS*(1+Math.sin(charAlpha*Math.PI)*0.3) : 1.0;
+
+    // キャラ背景円
+    ctx.beginPath();
+    ctx.arc(CX,CY,R*0.38*charScale,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,0.95)';
+    ctx.shadowColor='rgba(0,0,0,0.2)';
+    ctx.shadowBlur=12;
+    ctx.fill();
+    ctx.shadowBlur=0;
+
+    // キャラ描画
+    if(data.charImage){
+      if(!drawClock._cache) drawClock._cache={};
+      let ci=drawClock._cache['_hanabira_char'];
+      if(!ci||ci._src!==data.charImage){
+        ci=new Image(); ci._src=data.charImage; ci.src=data.charImage;
+        drawClock._cache['_hanabira_char']=ci;
+      }
+      if(ci.complete&&ci.naturalWidth>0){
+        const cr=R*0.32*charScale;
+        ctx.save();
+        ctx.beginPath();ctx.arc(CX,CY,cr,0,Math.PI*2);ctx.clip();
+        ctx.drawImage(ci,CX-cr,CY-cr,cr*2,cr*2);
+        ctx.restore();
+      }
+    } else {
+      const fontSize=R*0.55*charScale;
+      ctx.font=`${fontSize}px serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(data.character||'🐻', CX, CY+fontSize*0.05);
+    }
+
+    ctx.restore();
+
+    // 花びら星エフェクト
+    if(charAlpha>0.9){
+      const starPhase=(Date.now()/200)%6;
+      ['⭐','✨','🌸'].forEach((em,i)=>{
         const a=(i/3)*Math.PI*2+starPhase;
         const sr=R*0.55;
         ctx.save();
