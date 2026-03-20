@@ -220,7 +220,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
 
 /* プレビュー */
 .preview-wrap{display:flex;justify-content:center;margin-bottom:22px;}
-.preview-wrap canvas{border-radius:50%;filter:drop-shadow(0 6px 16px rgba(0,0,0,.15));}
+.preview-wrap canvas{filter:drop-shadow(0 6px 16px rgba(0,0,0,.15));}
 
 /* ===== LIST ===== */
 .list-head{
@@ -755,7 +755,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
   margin-bottom:18px;
 }
 .big-preview-wrap canvas{
-  border-radius:50%;
   filter:drop-shadow(0 8px 24px rgba(0,0,0,.18));
 }
 
@@ -1011,6 +1010,22 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
 .top-btn,.next-btn,.pbtn,.dbtn,.finish-btn,.trim-btn,.saved-card,.preset-name-btn,.back-btn{
   position:relative;overflow:hidden;
 }
+
+/* ===== STEP1: とけいのかたち ===== */
+.body-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:28px;
+}
+.body-card{
+  border:3px solid #eee;border-radius:18px;padding:14px 12px 12px;
+  cursor:pointer;background:#fff;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  transition:border-color .15s,background .15s;
+  position:relative;overflow:hidden;
+}
+.body-card:active{transform:scale(.93);}
+.body-card.chosen{border-color:var(--red);background:#fff5f5;animation:selSpring .3s cubic-bezier(.34,1.56,.64,1) forwards;}
+.body-card-label{font-family:'Fredoka One',cursive;font-size:.95rem;color:#888;}
+.body-card.chosen .body-card-label{color:var(--red);}
 </style>
 </head>
 <body>
@@ -1048,7 +1063,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
       <div class="wiz-head">
         <button class="back-btn" onclick="wizBack()">⬅️</button>
         <div class="wiz-prog-wrap">
-          <div class="wiz-step-txt" id="wizStepTxt">ステップ 1 / 8</div>
+          <div class="wiz-step-txt" id="wizStepTxt">ステップ 1 / 6</div>
           <div class="wiz-bar-bg"><div class="wiz-bar-fill" id="wizBarFill" style="width:12%"></div></div>
         </div>
         <canvas id="wizMiniPreview" width="52" height="52" style="border-radius:50%;flex-shrink:0;filter:drop-shadow(0 2px 6px rgba(0,0,0,.15));"></canvas>
@@ -1067,8 +1082,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
         <input class="name-input" id="nameInput" type="text" placeholder="れい：ぼくのとけい" maxlength="12" style="display:none;margin-top:12px;">
       </div>
 
-      <!-- s2 テーマカラー（文字盤＋わく） -->
+      <!-- s2 かたちをえらぶ -->
       <div class="step" id="s2" style="display:none">
+        <div class="step-title">🕰️ とけいのかたち</div>
+        <div class="step-hint">🕰️ すきなかたちを えらんでね！</div>
+        <div class="body-grid" id="bodyGrid"></div>
+      </div>
+
+      <!-- s3 テーマカラー（文字盤＋わく） -->
+      <div class="step" id="s3" style="display:none">
         <div class="step-title">🎨 テーマカラー</div>
         <div class="step-hint">🎨 すきないろを えらんでね！</div>
         <div class="big-preview-wrap">
@@ -1091,8 +1113,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
         </div>
       </div>
 
-      <!-- s3 はり＋すうじ -->
-      <div class="step" id="s3" style="display:none">
+      <!-- s4 はり＋すうじ -->
+      <div class="step" id="s4" style="display:none">
         <div class="step-title">🔧 はりと すうじ</div>
         <div class="step-hint">🔧 はりの いろと すうじを えらんでね！</div>
         <div class="big-preview-wrap">
@@ -1112,8 +1134,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
         </div>
       </div>
 
-      <!-- s4 キャラ＋うごき -->
-      <div class="step" id="s4" style="display:none">
+      <!-- s5 キャラ＋うごき -->
+      <div class="step" id="s5" style="display:none">
         <div class="step-title">🐾 キャラと うごき</div>
         <div class="step-hint">🐾 とびだす なかまと うごきを えらんでね！</div>
         <div class="color-group-label" style="margin-bottom:8px;">🐾 キャラクター</div>
@@ -1127,8 +1149,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
         <div class="anim-list" id="animList"></div>
       </div>
 
-      <!-- s5 おんがく -->
-      <div class="step" id="s5" style="display:none">
+      <!-- s6 おんがく -->
+      <div class="step" id="s6" style="display:none">
         <div class="step-title">🎵 おんがく</div>
         <div class="step-hint">🎵 からくりが でるときの おんがくを えらんでね！</div>
         <div class="music-grid" id="musicGrid"></div>
@@ -1196,7 +1218,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
       <div class="done-msg" id="doneMsg">できあがり！</div>
       <div class="done-author" id="doneAuthor"></div>
       <div class="done-clock-wrap">
-        <canvas id="doneClockCanvas" width="220" height="220" style="border-radius:50%;filter:drop-shadow(0 10px 30px rgba(255,107,107,.4));"></canvas>
+        <canvas id="doneClockCanvas" width="220" height="220" style="filter:drop-shadow(0 10px 30px rgba(255,107,107,.4));"></canvas>
       </div>
       <div class="done-name" id="doneName"></div>
       <div class="done-btns" style="width:min(300px,90vw);display:flex;flex-direction:column;gap:12px;margin-top:8px;">
@@ -1337,8 +1359,14 @@ const MUSICS=[
 ];
 const ROMAN=['','Ⅰ','Ⅱ','Ⅲ','Ⅳ','Ⅴ','Ⅵ','Ⅶ','Ⅷ','Ⅸ','Ⅹ','Ⅺ','Ⅻ'];
 const MAX=5;
+const CLOCK_BODIES=[
+  {id:'round',  label:'まる',   ico:'⭕', desc:'シンプルなまるい とけい'},
+  {id:'panel',  label:'パネル', ico:'🎨', desc:'4まいのパネルが ひらく！'},
+  {id:'square', label:'しかく', ico:'🟥', desc:'かどのある しかくとけい'},
+  {id:'arch',   label:'アーチ', ico:'⛪', desc:'ふりこの ついた とけい'},
+];
 
-let draft={name:'',faceColor:'#ffffff',handColor:'#ff6b6b',frameColor:'#ffd93d',numColor:'#444444',numberStyle:'arabic',character:'🐻',anims:['dance'],music:'chime'};
+let draft={name:'',clockBody:'round',faceColor:'#ffffff',handColor:'#ff6b6b',frameColor:'#ffd93d',numColor:'#444444',numberStyle:'arabic',character:'🐻',anims:['dance'],music:'chime'};
 let wizStep=1;
 let playData=null,playReal=true,playH=12,playM=0;
 let tickId=null,karTimer=null,lastMin=-1,audioCtx=null;
@@ -1362,7 +1390,7 @@ function goTo(toId,fromId,dir='forward'){
 
 /* WIZARD */
 function startWizard(){
-  draft={name:'',faceColor:'#ffffff',handColor:'#ff6b6b',frameColor:'#ffd93d',numColor:'#444444',numberStyle:'arabic',character:'🐻',anims:['dance'],music:'chime',faceImage:null,charImage:null};
+  draft={name:'',clockBody:'round',faceColor:'#ffffff',handColor:'#ff6b6b',frameColor:'#ffd93d',numColor:'#444444',numberStyle:'arabic',character:'🐻',anims:['dance'],music:'chime',faceImage:null,charImage:null};
   wizStep=1;
   buildWizUI();
   const ni=document.getElementById('nameInput'); if(ni) ni.value='';
@@ -1375,11 +1403,80 @@ function startWizard(){
   stopPreviewTick();
 }
 function buildWizUI(){
+  buildBodyGrid();
   buildColorRowBig('faceColorRow',  FACE_COLORS,  'faceColor');
   buildColorRowBig('handColorRow',  HAND_COLORS,  'handColor');
   buildColorRowBig('frameColorRow', FRAME_COLORS, 'frameColor');
   buildColorRowBig('numColorRow',   NUM_COLORS,   'numColor');
   buildNumGrid(); buildCharGrid(); buildAnimList(); buildMusicGrid();
+}
+function buildBodyGrid(){
+  const g=document.getElementById('bodyGrid'); if(!g) return; g.innerHTML='';
+  CLOCK_BODIES.forEach(b=>{
+    const card=document.createElement('div');
+    card.className='body-card'+(draft.clockBody===b.id?' chosen':'');
+    const cv=document.createElement('canvas');
+    cv.width=90; cv.height=90; cv.style.cssText='display:block;';
+    drawBodyPreview(cv,b.id,draft.faceColor||'#ffffff',draft.frameColor||'#ffd93d',draft.handColor||'#ff6b6b');
+    const lbl=document.createElement('div');
+    lbl.className='body-card-label';
+    lbl.textContent=b.label;
+    card.appendChild(cv); card.appendChild(lbl);
+    card.onclick=()=>{
+      draft.clockBody=b.id;
+      g.querySelectorAll('.body-card').forEach(x=>x.classList.remove('chosen'));
+      card.classList.add('chosen');
+      if(navigator.vibrate) navigator.vibrate(18);
+      spawnSparkle(card.getBoundingClientRect().left+card.offsetWidth/2,card.getBoundingClientRect().top+60);
+    };
+    g.appendChild(card);
+  });
+}
+function drawBodyPreview(canvas,bodyId,faceColor,frameColor,handColor){
+  const ctx=canvas.getContext('2d');
+  const S=canvas.width,CX=S/2,CY=S/2;
+  ctx.clearRect(0,0,S,S);
+  const R=S/2-5;
+  if(bodyId==='round'){
+    ctx.save(); ctx.beginPath(); ctx.arc(CX,CY,R+4,0,Math.PI*2); ctx.fillStyle=frameColor; ctx.shadowColor='rgba(0,0,0,.15)'; ctx.shadowBlur=6; ctx.fill(); ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.arc(CX,CY,R,0,Math.PI*2); ctx.clip(); ctx.fillStyle=faceColor; ctx.fill(); ctx.restore();
+  } else if(bodyId==='square'){
+    const rr=R*.25;
+    ctx.save(); ctx.shadowColor='rgba(0,0,0,.15)'; ctx.shadowBlur=6; ctx.beginPath(); ctx.roundRect(2,2,S-4,S-4,rr+4); ctx.fillStyle=frameColor; ctx.fill(); ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.roundRect(8,8,S-16,S-16,rr); ctx.clip(); ctx.fillStyle=faceColor; ctx.fillRect(0,0,S,S); ctx.restore();
+  } else if(bodyId==='arch'){
+    const archW=S-10,arcR=archW/2,archH=S*0.82,x=5,y=(S-archH)/2-2;
+    ctx.save(); ctx.shadowColor='rgba(0,0,0,.15)'; ctx.shadowBlur=6;
+    ctx.beginPath(); ctx.moveTo(x,y+arcR); ctx.arc(x+arcR,y+arcR,arcR,Math.PI,0,true); ctx.lineTo(x+archW,y+archH+6); ctx.lineTo(x,y+archH+6); ctx.closePath();
+    ctx.fillStyle=frameColor; ctx.fill(); ctx.restore();
+    ctx.save();
+    ctx.beginPath(); ctx.moveTo(x+6,y+arcR-2); ctx.arc(x+arcR,y+arcR,arcR-6,Math.PI,0,true); ctx.lineTo(x+archW-6,y+archH); ctx.lineTo(x+6,y+archH); ctx.closePath();
+    ctx.clip(); ctx.fillStyle=faceColor; ctx.fillRect(0,0,S,S); ctx.restore();
+    // mini pendulum
+    const bY=y+archH;
+    ctx.save(); ctx.strokeStyle=handColor; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(CX,bY); ctx.lineTo(CX,bY+7); ctx.stroke();
+    ctx.beginPath(); ctx.arc(CX,bY+10,4,0,Math.PI*2); ctx.fillStyle=frameColor; ctx.fill(); ctx.restore();
+  } else if(bodyId==='panel'){
+    ctx.save(); ctx.beginPath(); ctx.arc(CX,CY,R+4,0,Math.PI*2); ctx.fillStyle=frameColor; ctx.shadowColor='rgba(0,0,0,.15)'; ctx.shadowBlur=6; ctx.fill(); ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.arc(CX,CY,R,0,Math.PI*2); ctx.clip();
+    ctx.fillStyle='#1a1a2e'; ctx.fillRect(0,0,S,S);
+    const gap=0.06;
+    for(let qi=0;qi<4;qi++){
+      const sA=qi*Math.PI/2-Math.PI/2+gap,eA=sA+Math.PI/2-gap*2;
+      ctx.beginPath(); ctx.moveTo(CX,CY); ctx.arc(CX,CY,R-2,sA,eA); ctx.closePath();
+      ctx.globalAlpha=qi%2===0?1:0.85; ctx.fillStyle=faceColor; ctx.fill(); ctx.globalAlpha=1;
+      ctx.strokeStyle=frameColor; ctx.lineWidth=1.5; ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // Simple hands on all body types
+  ctx.save();
+  ctx.strokeStyle=handColor; ctx.lineCap='round';
+  const hAng=-Math.PI/3.5,mAng=-Math.PI/2;
+  ctx.lineWidth=2.5; ctx.beginPath(); ctx.moveTo(CX,CY); ctx.lineTo(CX+Math.cos(hAng)*R*.48,CY+Math.sin(hAng)*R*.48); ctx.stroke();
+  ctx.lineWidth=1.8; ctx.beginPath(); ctx.moveTo(CX,CY); ctx.lineTo(CX+Math.cos(mAng)*R*.68,CY+Math.sin(mAng)*R*.68); ctx.stroke();
+  ctx.beginPath(); ctx.arc(CX,CY,2.5,0,Math.PI*2); ctx.fillStyle=handColor; ctx.fill();
+  ctx.restore();
 }
 function buildColorRow(id,colors,key){
   buildColorRowBig(id,colors,key);
@@ -2148,16 +2245,16 @@ function showWizStep(n, withAnim){
     document.getElementById('craftPage').classList.remove('show');
     currentFromStep=n-1; // どのステップからの遷移か記録
     wizStep=n;
-    for(let i=1;i<=5;i++) { const el=document.getElementById('s'+i); if(el) el.style.display=(i===n?'block':'none'); }
-    document.getElementById('wizStepTxt').textContent=`ステップ ${n} / 5`;
-    document.getElementById('wizBarFill').style.width=(n/5*100)+'%';
+    for(let i=1;i<=6;i++) { const el=document.getElementById('s'+i); if(el) el.style.display=(i===n?'block':'none'); }
+    document.getElementById('wizStepTxt').textContent=`ステップ ${n} / 6`;
+    document.getElementById('wizBarFill').style.width=(n/6*100)+'%';
     document.getElementById('pgWiz').scrollTop=0;
     const btn=document.getElementById('nextBtn');
-    if(n===5){ btn.textContent='🎉 かんせい！'; btn.style.background='linear-gradient(135deg,#6bcb77,#4d96ff)'; buildMusicGrid(); }
+    if(n===6){ btn.textContent='🎉 かんせい！'; btn.style.background='linear-gradient(135deg,#6bcb77,#4d96ff)'; buildMusicGrid(); }
     else{ btn.textContent='👉 つぎへ すすむ'; btn.style.background='linear-gradient(135deg,var(--red),var(--orange))'; }
     refreshPreview();
     updateWizMiniPreview();
-    if(n>=2 && n<=3) startPreviewTick(); else stopPreviewTick();
+    if(n>=3 && n<=4) startPreviewTick(); else stopPreviewTick();
   };
   if(withAnim && n>1){
     stopPreviewTick();
@@ -2182,8 +2279,8 @@ function showNameInput(btn){
   if(btn) btn.classList.add('chosen');
 }
 function wizNextOrFinish(){
-  if(navigator.vibrate) navigator.vibrate(wizStep===5?[30,10,30]:22);
-  if(wizStep===5){ startShipSequence(); return; }
+  if(navigator.vibrate) navigator.vibrate(wizStep===6?[30,10,30]:22);
+  if(wizStep===6){ startShipSequence(); return; }
   if(wizStep===1){
     const inp=document.getElementById('nameInput');
     const nm=(inp.style.display!=='none')?inp.value.trim():'';
@@ -2193,9 +2290,9 @@ function wizNextOrFinish(){
 }
 function wizNext(){
   if(wizStep===1){const nm=document.getElementById('nameInput').value.trim();draft.name=nm||draft.name||'わたしのとけい';}
-  if(wizStep<5) showWizStep(wizStep+1, true);
+  if(wizStep<6) showWizStep(wizStep+1, true);
 }
-function wizAutoNext(){if(wizStep<5) showWizStep(wizStep+1, true);}
+function wizAutoNext(){if(wizStep<6) showWizStep(wizStep+1, true);}
 function wizBack(){
   if(navigator.vibrate) navigator.vibrate(10);
   // 製作アニメーション中断
@@ -2635,7 +2732,7 @@ function wizFinish(){
   launchConfetti();
   goTo('pgDone','pgWiz');
 }
-const previewMap={2:'pc2',3:'pc3',4:'pc3',5:'pc3'};
+const previewMap={3:'pc2',4:'pc3',5:'pc3',6:'pc3'};
 function refreshPreview(){
   const cid=previewMap[wizStep];if(!cid)return;
   const c=document.getElementById(cid);if(c)drawClock(c,draft,false,10,10,0);
@@ -2665,8 +2762,8 @@ function updateWizMiniPreview(){
   const S=52,CX=26,CY=26,R=22;
   ctx.clearRect(0,0,S,S);
 
-  // ステップ1(名前)は空のシルエットだけ
-  if(wizStep<=1){
+  // ステップ1・2(かたち/名前)は空のシルエットだけ
+  if(wizStep<=2){
     ctx.save();
     ctx.beginPath();ctx.arc(CX,CY,R+3,0,Math.PI*2);
     ctx.fillStyle='#eee';ctx.fill();
@@ -2676,17 +2773,17 @@ function updateWizMiniPreview(){
     return;
   }
 
-  // フレーム（s4以降で色がつく、それまでは灰色）
+  // フレーム（s3以降で色がつく、それまでは灰色）
   ctx.save();
   ctx.beginPath();ctx.arc(CX,CY,R+3,0,Math.PI*2);
-  ctx.fillStyle = wizStep>=4 ? (draft.frameColor||'#ffd93d') : '#ddd';
+  ctx.fillStyle = wizStep>=3 ? (draft.frameColor||'#ffd93d') : '#ddd';
   ctx.shadowColor='rgba(0,0,0,.15)';ctx.shadowBlur=4;
   ctx.fill();ctx.restore();
 
-  // 文字盤（s2以降）
+  // 文字盤（s3以降）
   ctx.save();
   ctx.beginPath();ctx.arc(CX,CY,R,0,Math.PI*2);ctx.clip();
-  if(wizStep>=2 && draft.faceImage){
+  if(wizStep>=3 && draft.faceImage){
     if(!drawClock._cache) drawClock._cache={};
     let img=drawClock._cache['_mini_face'];
     if(!img||img._src!==draft.faceImage){
@@ -2696,13 +2793,13 @@ function updateWizMiniPreview(){
     if(img.complete&&img.naturalWidth>0) ctx.drawImage(img,CX-R,CY-R,R*2,R*2);
     else {ctx.fillStyle=draft.faceColor||'#fff';ctx.fill();}
   } else {
-    ctx.fillStyle = wizStep>=2 ? (draft.faceColor||'#fff') : '#f0f0f0';
+    ctx.fillStyle = wizStep>=3 ? (draft.faceColor||'#fff') : '#f0f0f0';
     ctx.fill();
   }
   ctx.restore();
 
-  // 数字（s5以降）
-  if(wizStep>=5 && draft.numberStyle!=='none'){
+  // 数字（s4以降）
+  if(wizStep>=4 && draft.numberStyle!=='none'){
     ctx.save();
     for(let i=1;i<=12;i+=3){
       const ang=i/12*Math.PI*2-Math.PI/2;
@@ -2714,8 +2811,8 @@ function updateWizMiniPreview(){
     ctx.restore();
   }
 
-  // 針（s3以降）
-  if(wizStep>=3){
+  // 針（s4以降）
+  if(wizStep>=4){
     const now=new Date();
     const hh=now.getHours()%12,mm=now.getMinutes();
     const hAng=(hh+mm/60)/12*Math.PI*2-Math.PI/2;
@@ -2734,8 +2831,8 @@ function updateWizMiniPreview(){
     ctx.fillStyle=col;ctx.fill();
   }
 
-  // キャラ（s6以降・小さく）
-  if(wizStep>=6 && (draft.character||draft.charImage)){
+  // キャラ（s5以降・小さく）
+  if(wizStep>=5 && (draft.character||draft.charImage)){
     ctx.save();
     ctx.font=`${R*.55}px serif`;
     ctx.textAlign='center';ctx.textBaseline='middle';
@@ -2754,7 +2851,7 @@ function updateWizMiniPreview(){
   }
 
   // ✨ピカピカエフェクト（各ステップ切り替わり時）
-  if(wizStep>=2){
+  if(wizStep>=3){
     ctx.save();
     ctx.font=`${R*.35}px serif`;ctx.textAlign='right';ctx.textBaseline='top';
     ctx.fillText('✨',S-2,0);
@@ -2924,6 +3021,13 @@ function resetKar(){
 
 /* CLOCK DRAW */
 function drawClock(canvas,data,useReal,tH,tM,tS){
+  const body=(data&&data.clockBody)||'round';
+  if(body==='panel')  return drawClockPanel(canvas,data,useReal,tH,tM,tS);
+  if(body==='square') return drawClockSquare(canvas,data,useReal,tH,tM,tS);
+  if(body==='arch')   return drawClockArch(canvas,data,useReal,tH,tM,tS);
+  return drawClockRound(canvas,data,useReal,tH,tM,tS);
+}
+function drawClockRound(canvas,data,useReal,tH,tM,tS){
   const ctx=canvas.getContext('2d');
   const S=canvas.width,CX=S/2,CY=S/2,R=S/2-8;
   let h,m,s;
@@ -2963,6 +3067,149 @@ function drawClock(canvas,data,useReal,tH,tM,tS){
   }
   hand(ctx,CX,CY,(h+m/60)/12*Math.PI*2-Math.PI/2,R*.5, R*.062,data.handColor);
   hand(ctx,CX,CY,(m+s/60)/60*Math.PI*2-Math.PI/2, R*.72,R*.042,data.handColor);
+  if(useReal) hand(ctx,CX,CY,s/60*Math.PI*2-Math.PI/2,R*.8,R*.016,'#ff4444');
+  ctx.beginPath();ctx.arc(CX,CY,R*.062,0,Math.PI*2);ctx.fillStyle=data.handColor;ctx.fill();
+  ctx.beginPath();ctx.arc(CX,CY,R*.025,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
+}
+function drawClockPanel(canvas,data,useReal,tH,tM,tS){
+  const ctx=canvas.getContext('2d');
+  const S=canvas.width,CX=S/2,CY=S/2,R=S/2-8;
+  let h,m,s;
+  if(useReal){const n=new Date();h=n.getHours()%12;m=n.getMinutes();s=n.getSeconds();}
+  else{h=tH%12;m=tM;s=tS||0;}
+  ctx.clearRect(0,0,S,S);
+  // Frame
+  ctx.save();ctx.beginPath();ctx.arc(CX,CY,R+8,0,Math.PI*2);
+  ctx.fillStyle=data.frameColor||'#ffd93d';ctx.shadowColor='rgba(0,0,0,.18)';ctx.shadowBlur=14;ctx.fill();ctx.restore();
+  // Dark bg + 4 panels (within clip)
+  ctx.save();ctx.beginPath();ctx.arc(CX,CY,R,0,Math.PI*2);ctx.clip();
+  ctx.fillStyle='#1a1a2e';ctx.fillRect(0,0,S,S);
+  const gap=0.05;
+  for(let qi=0;qi<4;qi++){
+    const sA=qi*Math.PI/2-Math.PI/2+gap,eA=sA+Math.PI/2-gap*2;
+    ctx.beginPath();ctx.moveTo(CX,CY);ctx.arc(CX,CY,R-2,sA,eA);ctx.closePath();
+    ctx.globalAlpha=qi%2===0?1:0.9;ctx.fillStyle=data.faceColor||'#ffffff';ctx.fill();ctx.globalAlpha=1;
+    ctx.strokeStyle=data.frameColor||'#ffd93d';ctx.lineWidth=2;ctx.stroke();
+  }
+  // Numbers
+  for(let i=1;i<=12;i++){
+    const ang=i/12*Math.PI*2-Math.PI/2;
+    const nx=CX+Math.cos(ang)*R*.78,ny=CY+Math.sin(ang)*R*.78;
+    if(data.numberStyle==='arabic'){
+      ctx.font=`bold ${R*.145}px Nunito,sans-serif`;ctx.fillStyle='#1a1a2e';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String(i),nx,ny);
+    }else if(data.numberStyle==='roman'){
+      ctx.font=`bold ${R*.11}px Nunito,sans-serif`;ctx.fillStyle='#1a1a2e';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(ROMAN[i],nx,ny);
+    }else if(data.numberStyle==='dots'){
+      ctx.fillStyle='#1a1a2e';ctx.beginPath();ctx.arc(nx,ny,i%3===0?5:3,0,Math.PI*2);ctx.fill();
+    }
+    const x1=CX+Math.cos(ang)*R*.88,y1=CY+Math.sin(ang)*R*.88,x2=CX+Math.cos(ang)*R*.97,y2=CY+Math.sin(ang)*R*.97;
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.strokeStyle='rgba(255,255,255,.2)';ctx.lineWidth=1.5;ctx.stroke();
+  }
+  ctx.restore();
+  // Center hub
+  ctx.save();ctx.beginPath();ctx.arc(CX,CY,R*.18,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,.9)';ctx.shadowColor='rgba(0,0,0,.2)';ctx.shadowBlur=6;ctx.fill();ctx.restore();
+  // Hands
+  hand(ctx,CX,CY,(h+m/60)/12*Math.PI*2-Math.PI/2,R*.5,R*.062,data.handColor);
+  hand(ctx,CX,CY,(m+s/60)/60*Math.PI*2-Math.PI/2,R*.72,R*.042,data.handColor);
+  if(useReal) hand(ctx,CX,CY,s/60*Math.PI*2-Math.PI/2,R*.8,R*.016,'#ff4444');
+  ctx.beginPath();ctx.arc(CX,CY,R*.062,0,Math.PI*2);ctx.fillStyle=data.handColor;ctx.fill();
+  ctx.beginPath();ctx.arc(CX,CY,R*.025,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
+}
+function drawClockSquare(canvas,data,useReal,tH,tM,tS){
+  const ctx=canvas.getContext('2d');
+  const S=canvas.width,CX=S/2,CY=S/2,R=S/2-8;
+  let h,m,s;
+  if(useReal){const n=new Date();h=n.getHours()%12;m=n.getMinutes();s=n.getSeconds();}
+  else{h=tH%12;m=tM;s=tS||0;}
+  ctx.clearRect(0,0,S,S);
+  const rr=R*.22;
+  // Frame
+  ctx.save();ctx.shadowColor='rgba(0,0,0,.18)';ctx.shadowBlur=14;
+  ctx.beginPath();ctx.roundRect(0,0,S,S,rr+6);ctx.fillStyle=data.frameColor||'#ffd93d';ctx.fill();ctx.restore();
+  // Face
+  ctx.save();ctx.beginPath();ctx.roundRect(8,8,S-16,S-16,rr);ctx.clip();
+  if(data.faceImage){
+    const imgKey='_img_sq_'+data.id;
+    if(!drawClock._cache) drawClock._cache={};
+    let img=drawClock._cache[imgKey];
+    if(!img||img._src!==data.faceImage){img=new Image();img._src=data.faceImage;img.src=data.faceImage;drawClock._cache[imgKey]=img;}
+    if(img.complete&&img.naturalWidth>0) ctx.drawImage(img,0,0,S,S);
+    else{ctx.fillStyle='#fffdf5';ctx.fillRect(0,0,S,S);}
+  }else{ctx.fillStyle=data.faceColor||'#ffffff';ctx.fillRect(0,0,S,S);}
+  // Numbers + ticks
+  for(let i=1;i<=12;i++){
+    const ang=i/12*Math.PI*2-Math.PI/2;
+    const nx=CX+Math.cos(ang)*R*.78,ny=CY+Math.sin(ang)*R*.78;
+    if(data.numberStyle==='arabic'){
+      ctx.font=`bold ${R*.145}px Nunito,sans-serif`;ctx.fillStyle=data.numColor||'#444444';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String(i),nx,ny);
+    }else if(data.numberStyle==='roman'){
+      ctx.font=`bold ${R*.11}px Nunito,sans-serif`;ctx.fillStyle=data.numColor||'#444444';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(ROMAN[i],nx,ny);
+    }else if(data.numberStyle==='dots'){
+      ctx.fillStyle=data.numColor||'#bbbbbb';ctx.beginPath();ctx.arc(nx,ny,i%3===0?5:3,0,Math.PI*2);ctx.fill();
+    }
+    const x1=CX+Math.cos(ang)*R*.88,y1=CY+Math.sin(ang)*R*.88,x2=CX+Math.cos(ang)*R*.97,y2=CY+Math.sin(ang)*R*.97;
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.strokeStyle='#ddd';ctx.lineWidth=1.5;ctx.stroke();
+  }
+  ctx.restore();
+  // Hands
+  hand(ctx,CX,CY,(h+m/60)/12*Math.PI*2-Math.PI/2,R*.5,R*.062,data.handColor);
+  hand(ctx,CX,CY,(m+s/60)/60*Math.PI*2-Math.PI/2,R*.72,R*.042,data.handColor);
+  if(useReal) hand(ctx,CX,CY,s/60*Math.PI*2-Math.PI/2,R*.8,R*.016,'#ff4444');
+  ctx.beginPath();ctx.arc(CX,CY,R*.062,0,Math.PI*2);ctx.fillStyle=data.handColor;ctx.fill();
+  ctx.beginPath();ctx.arc(CX,CY,R*.025,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
+}
+function drawClockArch(canvas,data,useReal,tH,tM,tS){
+  const ctx=canvas.getContext('2d');
+  const S=canvas.width,CX=S/2,CY=S/2,R=S/2-8;
+  let h,m,s;
+  if(useReal){const n=new Date();h=n.getHours()%12;m=n.getMinutes();s=n.getSeconds();}
+  else{h=tH%12;m=tM;s=tS||0;}
+  ctx.clearRect(0,0,S,S);
+  const FR=R+8,bottomY=CY+R*.8;
+  function archShape(ctx,r,bY){
+    ctx.beginPath();ctx.arc(CX,CY,r,Math.PI,0,true);ctx.lineTo(CX+r,bY);ctx.lineTo(CX-r,bY);ctx.closePath();
+  }
+  // Frame
+  ctx.save();archShape(ctx,FR,bottomY+8);ctx.fillStyle=data.frameColor||'#ffd93d';ctx.shadowColor='rgba(0,0,0,.18)';ctx.shadowBlur=14;ctx.fill();ctx.restore();
+  // Face
+  ctx.save();archShape(ctx,R,bottomY);ctx.clip();
+  if(data.faceImage){
+    const imgKey='_img_arch_'+data.id;
+    if(!drawClock._cache) drawClock._cache={};
+    let img=drawClock._cache[imgKey];
+    if(!img||img._src!==data.faceImage){img=new Image();img._src=data.faceImage;img.src=data.faceImage;drawClock._cache[imgKey]=img;}
+    if(img.complete&&img.naturalWidth>0) ctx.drawImage(img,CX-R,CY-R,R*2,R*2);
+    else{ctx.fillStyle='#fffdf5';ctx.fill();}
+  }else{ctx.fillStyle=data.faceColor||'#ffffff';ctx.fill();}
+  // Numbers + ticks (skip those below arch bottom)
+  for(let i=1;i<=12;i++){
+    const ang=i/12*Math.PI*2-Math.PI/2;
+    const nx=CX+Math.cos(ang)*R*.78,ny=CY+Math.sin(ang)*R*.78;
+    if(ny>bottomY-4) continue;
+    if(data.numberStyle==='arabic'){
+      ctx.font=`bold ${R*.145}px Nunito,sans-serif`;ctx.fillStyle=data.numColor||'#444444';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String(i),nx,ny);
+    }else if(data.numberStyle==='roman'){
+      ctx.font=`bold ${R*.11}px Nunito,sans-serif`;ctx.fillStyle=data.numColor||'#444444';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(ROMAN[i],nx,ny);
+    }else if(data.numberStyle==='dots'){
+      ctx.fillStyle=data.numColor||'#bbbbbb';ctx.beginPath();ctx.arc(nx,ny,i%3===0?5:3,0,Math.PI*2);ctx.fill();
+    }
+    const x1=CX+Math.cos(ang)*R*.88,y1=CY+Math.sin(ang)*R*.88,x2=CX+Math.cos(ang)*R*.97,y2=CY+Math.sin(ang)*R*.97;
+    if(y1>bottomY-4) continue;
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.strokeStyle='#ddd';ctx.lineWidth=1.5;ctx.stroke();
+  }
+  ctx.restore();
+  // Pendulum rod + bob
+  const pendEnd=Math.min(bottomY+28,S-8);
+  ctx.save();ctx.strokeStyle=data.handColor||'#ff6b6b';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(CX,bottomY);ctx.lineTo(CX,pendEnd);ctx.stroke();
+  if(pendEnd+9<S){
+    ctx.beginPath();ctx.arc(CX,pendEnd,8,0,Math.PI*2);ctx.fillStyle=data.frameColor||'#ffd93d';ctx.fill();
+    ctx.beginPath();ctx.arc(CX,pendEnd,5,0,Math.PI*2);ctx.fillStyle=data.handColor||'#ff6b6b';ctx.fill();
+  }
+  ctx.restore();
+  // Hands
+  hand(ctx,CX,CY,(h+m/60)/12*Math.PI*2-Math.PI/2,R*.5,R*.062,data.handColor);
+  hand(ctx,CX,CY,(m+s/60)/60*Math.PI*2-Math.PI/2,R*.72,R*.042,data.handColor);
   if(useReal) hand(ctx,CX,CY,s/60*Math.PI*2-Math.PI/2,R*.8,R*.016,'#ff4444');
   ctx.beginPath();ctx.arc(CX,CY,R*.062,0,Math.PI*2);ctx.fillStyle=data.handColor;ctx.fill();
   ctx.beginPath();ctx.arc(CX,CY,R*.025,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
@@ -3838,7 +4085,7 @@ async function saveClockImage(){
 
 /* ===== 3-C: トップページ ライブミニ時計 ===== */
 let topClockId=null;
-const TOP_CLOCK_DEFAULT={faceColor:'#fff8f0',frameColor:'#ffd93d',handColor:'#ff6b6b',numColor:'#888',numberStyle:'arabic',character:'🐻',anims:['dance']};
+const TOP_CLOCK_DEFAULT={clockBody:'round',faceColor:'#fff8f0',frameColor:'#ffd93d',handColor:'#ff6b6b',numColor:'#888',numberStyle:'arabic',character:'🐻',anims:['dance']};
 function startTopClock(){
   const c=document.getElementById('topClockCanvas'); if(!c) return;
   stopTopClock();
