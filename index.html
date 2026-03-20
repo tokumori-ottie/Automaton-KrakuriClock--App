@@ -916,6 +916,50 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
   max-width:290px;text-align:center;pointer-events:none;
   box-shadow:0 6px 20px rgba(0,0,0,.25);
 }
+/* ===== 3-A: バッジシステム ===== */
+.badge-popup{
+  position:fixed;inset:0;z-index:60000;
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:none;opacity:0;
+  transition:opacity .35s;
+}
+.badge-popup.show{opacity:1;}
+.badge-popup-inner{
+  background:#fff;border-radius:28px;
+  padding:28px 36px;text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.28);
+  animation:badgePop .5s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes badgePop{
+  0%  {transform:scale(0) rotate(-15deg);}
+  100%{transform:scale(1) rotate(0deg);}
+}
+.badge-popup-sub{font-family:'Fredoka One',cursive;font-size:.95rem;color:#aaa;margin-top:4px;}
+.badge-popup-ico{font-size:4.5rem;line-height:1;}
+.badge-popup-lbl{font-family:'Fredoka One',cursive;font-size:1.6rem;color:var(--red);margin-top:8px;}
+
+.top-badges{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:8px 0 0;}
+.top-badge-item{
+  display:flex;flex-direction:column;align-items:center;
+  gap:2px;opacity:1;transition:opacity .3s;
+}
+.top-badge-item.locked{opacity:.22;filter:grayscale(1);}
+.top-badge-ico{font-size:2rem;}
+.top-badge-lbl{font-family:'Fredoka One',cursive;font-size:.65rem;color:#aaa;text-align:center;max-width:56px;}
+
+/* ===== 3-B: スクショボタン ===== */
+.pbtn.pur{background:linear-gradient(135deg,var(--purple),#9d4edd);}
+
+/* ===== 3-C: トップページ ライブ時計 ===== */
+.top-clock-wrap{
+  display:flex;justify-content:center;
+  margin:14px 0 6px;
+}
+#topClockCanvas{
+  border-radius:50%;
+  filter:drop-shadow(0 4px 18px rgba(255,107,107,.25));
+}
+
 /* ===== INSTALL BANNER ===== */
 #installBanner{
   display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
@@ -939,6 +983,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
       <div>
         <div class="top-title">🕰️ からくりとけい<br>メーカー</div>
         <p class="top-sub">じぶんだけの とけいを つくろう！</p>
+        <div class="top-clock-wrap">
+          <canvas id="topClockCanvas" width="160" height="160"></canvas>
+        </div>
+        <div class="top-badges" id="topBadges"></div>
       </div>
       <div class="top-btns">
         <button class="top-btn a" onclick="startWizard()">
@@ -1094,6 +1142,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
           <button class="pbtn blu" onclick="setReal()">⏰ いまのじかん</button>
           <button class="pbtn red" onclick="triggerKarakuri()">🎭 テストする</button>
           <button class="pbtn grn" onclick="playChime()">🎵 おとをならす</button>
+          <button class="pbtn pur" onclick="saveClockImage()">📸 がぞうにほぞん</button>
         </div>
       </div>
     </div>
@@ -2286,6 +2335,9 @@ function runShipPhase(){
         saved.push(cl);saveSaved(saved);
         const _ds=document.getElementById('doneAuthor'); if(_ds) _ds.textContent=`「${cl.name}」を つくったよ！🎊`;
         launchConfetti();
+        // バッジチェック（pgDone到着後に表示）
+        const newBadges=checkBadges(saved.length);
+        newBadges.forEach((b,i)=>setTimeout(()=>showBadgePopup(b),2200+i*1000));
         goTo('pgDone','pgWiz');
       }, 1600);
     }
@@ -3402,6 +3454,120 @@ document.addEventListener('click',e=>{
   const t=e.target.closest('.top-btn,.dbtn,.pbtn,.finish-btn,.name-next');
   if(t) spawnSparkle(e.clientX,e.clientY);
 });
+
+/* ===== 3-A: バッジシステム ===== */
+const BADGES=[
+  {id:'first',     ico:'⭐', label:'はじめてのとけい！', need:1},
+  {id:'collector', ico:'🏆', label:'コレクター！',        need:2},
+  {id:'master',    ico:'👑', label:'マスター！',           need:5},
+];
+function loadMeta(){try{return JSON.parse(localStorage.getItem('kk_meta')||'{}');}catch{return {};}}
+function saveMeta(m){localStorage.setItem('kk_meta',JSON.stringify(m));}
+function checkBadges(savedCount){
+  const meta=loadMeta();
+  if(!meta.stamps) meta.stamps=[];
+  const newBadges=[];
+  BADGES.forEach(b=>{
+    if(savedCount>=b.need&&!meta.stamps.includes(b.id)){
+      meta.stamps.push(b.id);
+      newBadges.push(b);
+    }
+  });
+  if(newBadges.length) saveMeta(meta);
+  return newBadges;
+}
+function showBadgePopup(badge){
+  const el=document.createElement('div');
+  el.className='badge-popup';
+  el.innerHTML=`<div class="badge-popup-inner"><div class="badge-popup-ico">${badge.ico}</div><div class="badge-popup-lbl">${badge.label}</div><div class="badge-popup-sub">バッジをゲット！🎊</div></div>`;
+  document.body.appendChild(el);
+  if(navigator.vibrate) navigator.vibrate([50,30,80]);
+  requestAnimationFrame(()=>el.classList.add('show'));
+  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),400);},2600);
+}
+function renderTopBadges(){
+  const el=document.getElementById('topBadges'); if(!el) return;
+  const meta=loadMeta();
+  const stamps=meta.stamps||[];
+  el.innerHTML=BADGES.map(b=>`
+    <div class="top-badge-item${stamps.includes(b.id)?'':' locked'}" title="${b.label}">
+      <div class="top-badge-ico">${b.ico}</div>
+      <div class="top-badge-lbl">${b.label}</div>
+    </div>`).join('');
+}
+
+/* ===== 3-B: スクリーンショット保存 ===== */
+async function saveClockImage(){
+  if(!playData){showToast('とけいがひらかれていません');return;}
+  showToast('📸 がぞうをつくっています…');
+  const now=new Date();
+  const dh=playReal?now.getHours():playH;
+  const dm=playReal?now.getMinutes():playM;
+  // 時計をオフスクリーンcanvasに描画
+  const cw=400,ch=480;
+  const offscreen=document.createElement('canvas');
+  offscreen.width=cw; offscreen.height=ch;
+  const ctx=offscreen.getContext('2d');
+  // 背景
+  ctx.fillStyle='#fff8f0';
+  ctx.fillRect(0,0,cw,ch);
+  // 時計（400×400の中央に描画）
+  const clockOff=document.createElement('canvas');
+  clockOff.width=400;clockOff.height=400;
+  drawClock(clockOff,playData,false,dh,dm,0);
+  ctx.drawImage(clockOff,0,8);
+  // 時計名
+  ctx.font='bold 28px "Fredoka One", cursive, sans-serif';
+  ctx.fillStyle='#ff6b6b';
+  ctx.textAlign='center';
+  ctx.fillText(playData.name||'わたしのとけい',cw/2,440);
+  // ウォーターマーク
+  ctx.font='14px sans-serif';
+  ctx.fillStyle='#ccc';
+  ctx.fillText('🕰️ からくりとけいメーカー',cw/2,466);
+  offscreen.toBlob(async blob=>{
+    const file=new File([blob],(playData.name||'tokei')+'.png',{type:'image/png'});
+    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+      try{await navigator.share({files:[file],title:playData.name});return;}catch(e){}
+    }
+    // ダウンロードにフォールバック
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=(playData.name||'tokei')+'.png';
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),15000);
+    showToast('📸 ほぞんしました！');
+  },'image/png');
+}
+
+/* ===== 3-C: トップページ ライブミニ時計 ===== */
+let topClockId=null;
+const TOP_CLOCK_DEFAULT={faceColor:'#fff8f0',frameColor:'#ffd93d',handColor:'#ff6b6b',numColor:'#888',numberStyle:'arabic',character:'🐻',anims:['dance']};
+function startTopClock(){
+  const c=document.getElementById('topClockCanvas'); if(!c) return;
+  stopTopClock();
+  const saved=loadSaved();
+  const data=saved.length?saved[saved.length-1]:TOP_CLOCK_DEFAULT;
+  function tick(){
+    drawClock(c,data,true,0,0,0);
+    topClockId=requestAnimationFrame(tick);
+  }
+  tick();
+  renderTopBadges();
+}
+function stopTopClock(){
+  if(topClockId){cancelAnimationFrame(topClockId);topClockId=null;}
+}
+function initTopClock(){
+  const pgTop=document.getElementById('pgTop'); if(!pgTop) return;
+  const obs=new MutationObserver(()=>{
+    if(pgTop.classList.contains('active')) startTopClock();
+    else stopTopClock();
+  });
+  obs.observe(pgTop,{attributes:true,attributeFilter:['class']});
+  if(pgTop.classList.contains('active')) startTopClock();
+}
+initTopClock();
 
 /* STORAGE */
 function loadSaved(){try{return JSON.parse(localStorage.getItem('kk_clocks')||'[]');}catch{return [];}}
