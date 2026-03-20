@@ -2994,11 +2994,13 @@ function triggerKarakuri(){
 
   if(playData&&playData.anims.length){
     // split / door / hanabira はキャンバスで描画するスペシャルアニメーション
+    // アーチ型は扇形オーバーレイが文字盤写真を隠すためキャンバスアニメーションをスキップ
     const SPECIAL=['split','door','hanabira'];
     const specials=playData.anims.filter(a=>SPECIAL.includes(a));
     const nonSpecial=playData.anims.filter(a=>!SPECIAL.includes(a));
+    const isArch=(playData.clockBody==='arch');
 
-    if(specials.length>0 && (nonSpecial.length===0||Math.random()<0.65)){
+    if(!isArch && specials.length>0 && (nonSpecial.length===0||Math.random()<0.65)){
       // スペシャルアニメーションからランダム選択
       const pick=specials[Math.floor(Math.random()*specials.length)];
       ch.classList.remove('show');
@@ -3711,9 +3713,17 @@ function drawSplitOverlay(canvas){
     // 扇形の自転：自分の中心軸で回転
     const selfRad=splitSectors[qi].selfAngle*Math.PI/180;
 
-    // 背景（文字盤色）
+    // 背景（文字盤色 or 写真）
     ctx.fillStyle=sec.color;
     ctx.fill();
+    if(data.faceImage){
+      const imgKey='_img_'+data.id;
+      if(!drawClock._cache) drawClock._cache={};
+      let img=drawClock._cache[imgKey];
+      if(!img||img._src!==data.faceImage){img=new Image();img._src=data.faceImage;img.src=data.faceImage;drawClock._cache[imgKey]=img;}
+      // 翻訳済み座標でキャンバス全体に写真を描画（クリップで扇形内だけ表示）
+      if(img.complete&&img.naturalWidth>0) ctx.drawImage(img,-CX-ox,-CY-oy,S,S);
+    }
 
     // 自転する内部コンテンツ（数字・目盛り）
     ctx.save();
