@@ -86,7 +86,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
 .wiz-prog-wrap{flex:1;}
 .wiz-step-txt{font-family:'Fredoka One',cursive;font-size:.82rem;color:#ccc;margin-bottom:4px;}
 .wiz-bar-bg{height:8px;background:#eee;border-radius:99px;overflow:hidden;}
-.wiz-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--red),var(--orange));transition:width .4s ease;}
+.wiz-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--red),var(--orange));transition:width .5s cubic-bezier(.34,1.56,.64,1);}
 
 .step-title{font-family:'Fredoka One',cursive;font-size:1.7rem;color:#444;margin:20px 0 4px;}
 .step-hint{
@@ -101,9 +101,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
   width:100%;font-family:'Fredoka One',cursive;font-size:1.4rem;
   border:3px solid #eee;border-radius:18px;padding:16px 18px;
   outline:none;color:#444;background:#fff;
-  transition:border-color .2s;margin-bottom:14px;
+  transition:border-color .2s,box-shadow .2s,transform .18s;margin-bottom:14px;
 }
-.name-input:focus{border-color:var(--red);}
+.name-input:focus{border-color:var(--red);box-shadow:0 0 0 5px rgba(255,107,107,.15);transform:scale(1.01);}
 .name-next{display:none;}
 
 /* 固定つぎへボタン */
@@ -152,13 +152,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
 /* 色ドット */
 .color-row{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:24px;}
 .cdot{
-  width:52px;height:52px;border-radius:50%;cursor:pointer;
+  width:48px;height:48px;border-radius:50%;cursor:pointer;
   border:4px solid transparent;
   box-shadow:0 2px 8px rgba(0,0,0,.13);
-  transition:transform .15s,border-color .15s;flex-shrink:0;
+  transition:transform .22s ease,border-color .15s;flex-shrink:0;
+  position:relative;overflow:hidden;
 }
-.cdot:active{transform:scale(.85);}
-.cdot.chosen{border-color:#333;transform:scale(1.25);}
+.cdot:active{transform:scale(.78);}
+.cdot.chosen{border-color:#333;animation:dotSpring .4s cubic-bezier(.34,1.56,.64,1) forwards;}
 
 /* 数字スタイル */
 .sel-grid{display:grid;gap:12px;grid-template-columns:repeat(2,1fr);margin-bottom:24px;}
@@ -167,10 +168,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
   padding:20px 12px;cursor:pointer;
   display:flex;flex-direction:column;align-items:center;gap:6px;
   background:#fff;font-size:.88rem;font-weight:900;color:#999;
-  transition:all .18s;
+  transition:border-color .15s,background .15s,color .15s;
+  position:relative;overflow:hidden;
 }
-.sel-card:active{transform:scale(.93);}
-.sel-card.chosen{border-color:var(--red);background:#fff5f5;color:var(--red);}
+.sel-card:active{transform:scale(.90);}
+.sel-card.chosen{border-color:var(--red);background:#fff5f5;color:var(--red);animation:selSpring .3s cubic-bezier(.34,1.56,.64,1) forwards;}
 
 /* キャラ */
 .char-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:24px;}
@@ -179,10 +181,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
   border:3px solid #eee;border-radius:18px;
   cursor:pointer;background:#fff;
   display:flex;align-items:center;justify-content:center;
-  transition:all .18s;
+  transition:border-color .15s,background .15s,transform .22s ease;
+  position:relative;overflow:hidden;
 }
-.char-btn:active{transform:scale(.88);}
-.char-btn.chosen{border-color:var(--red);background:#fff5f5;transform:scale(1.12);}
+.char-btn:active{transform:scale(.80);}
+.char-btn.chosen{border-color:var(--red);background:#fff5f5;animation:selSpring .34s cubic-bezier(.34,1.56,.64,1) forwards;}
 
 /* アニメ */
 .anim-list{display:flex;flex-direction:column;gap:12px;margin-bottom:28px;}
@@ -190,10 +193,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
   border:3px solid #eee;border-radius:18px;padding:16px 14px;
   cursor:pointer;background:#fff;
   display:flex;align-items:center;gap:14px;
-  transition:all .18s;
+  transition:border-color .15s,background .15s,box-shadow .15s;
+  position:relative;overflow:hidden;
 }
-.anim-card:active{transform:scale(.97);}
-.anim-card.chosen{border-color:var(--red);background:#fff5f5;}
+.anim-card:active{transform:scale(.93);box-shadow:0 1px 4px rgba(0,0,0,.08);}
+.anim-card.chosen{border-color:var(--red);background:#fff5f5;animation:cardPop .24s ease-out forwards;}
 .anim-ico{font-size:2rem;flex-shrink:0;}
 .anim-info strong{font-size:1rem;color:#444;}
 .anim-info span{font-size:.82rem;color:#bbb;display:block;margin-top:2px;}
@@ -604,10 +608,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
   border:3px solid #eee;border-radius:18px;padding:14px 16px;
   cursor:pointer;background:#fff;
   display:flex;align-items:center;gap:14px;
-  transition:all .18s;
+  transition:border-color .15s,background .15s,box-shadow .15s;
+  position:relative;overflow:hidden;
 }
-.music-card:active{transform:scale(.97);}
-.music-card.chosen{border-color:var(--red);background:#fff5f5;}
+.music-card:active{transform:scale(.93);box-shadow:0 1px 4px rgba(0,0,0,.08);}
+.music-card.chosen{border-color:var(--red);background:#fff5f5;animation:cardPop .24s ease-out forwards;}
 .music-ico{font-size:2rem;flex-shrink:0;}
 .music-info{flex:1;}
 .music-info strong{font-size:1rem;color:#444;display:block;}
@@ -970,6 +975,42 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
 }
 #installBanner button.yes{background:#fff;color:var(--red);border:none;border-radius:12px;padding:6px 14px;font-family:'Fredoka One',cursive;font-size:.88rem;cursor:pointer;}
 #installBanner button.no{background:none;border:none;color:#fff;font-size:1.1rem;cursor:pointer;padding:0 4px;}
+
+/* ===== タップ リップル フィードバック ===== */
+.ripple{
+  position:absolute;border-radius:50%;
+  transform:scale(0);pointer-events:none;
+  animation:rippleAnim .52s linear;
+  background:rgba(255,255,255,0.42);
+}
+@keyframes rippleAnim{to{transform:scale(4);opacity:0;}}
+
+/* ===== 選択スプリング アニメーション ===== */
+/* キャラ・数字スタイル用（scale 1.12 に収束） */
+@keyframes selSpring{
+  0%  {transform:scale(.82);}
+  52% {transform:scale(1.22);}
+  78% {transform:scale(1.07);}
+  100%{transform:scale(1.12);}
+}
+/* 色ドット用（scale 1.22 に収束） */
+@keyframes dotSpring{
+  0%  {transform:scale(.76);}
+  48% {transform:scale(1.45);}
+  76% {transform:scale(1.16);}
+  100%{transform:scale(1.22);}
+}
+/* リスト型カード用（scale 1.0 に収束、スコッと弾む） */
+@keyframes cardPop{
+  0%  {transform:scale(.95);}
+  52% {transform:scale(1.025);}
+  100%{transform:scale(1);}
+}
+
+/* ===== リップル対象ボタン（position:relative + overflow:hidden が必要） ===== */
+.top-btn,.next-btn,.pbtn,.dbtn,.finish-btn,.trim-btn,.saved-card,.preset-name-btn,.back-btn{
+  position:relative;overflow:hidden;
+}
 </style>
 </head>
 <body>
@@ -1348,16 +1389,15 @@ function buildColorRowBig(id,colors,key){
   colors.forEach(c=>{
     const d=document.createElement('div');
     d.className='cdot'+(draft[key]===c?' chosen':'');
-    d.style.cssText=`background:${c};width:44px;height:44px;border-radius:50%;cursor:pointer;border:3px solid transparent;box-shadow:0 2px 8px rgba(0,0,0,.13);transition:transform .15s,border-color .15s;flex-shrink:0;`;
-    if(c==='#ffffff') d.style.outline='2px solid #eee';
-    if(draft[key]===c){ d.style.borderColor='#333'; d.style.transform='scale(1.22)'; }
+    d.style.background=c;
+    if(c==='#ffffff') d.style.outline='2px solid #ddd';
     d.onclick=()=>{
       draft[key]=c;
-      row.querySelectorAll('.cdot').forEach(x=>{ x.style.borderColor='transparent'; x.style.transform=''; });
-      d.style.borderColor='#333'; d.style.transform='scale(1.22)';
+      row.querySelectorAll('.cdot').forEach(x=>x.classList.remove('chosen'));
+      d.classList.add('chosen');
       refreshPreview();
-      if(navigator.vibrate) navigator.vibrate(30);
-      spawnSparkle(d.getBoundingClientRect().left+22,d.getBoundingClientRect().top+22);
+      if(navigator.vibrate) navigator.vibrate(18);
+      spawnSparkle(d.getBoundingClientRect().left+24,d.getBoundingClientRect().top+24);
     };
     row.appendChild(d);
   });
@@ -1373,6 +1413,7 @@ function buildNumGrid(){
       g.querySelectorAll('.sel-card').forEach(x=>x.classList.remove('chosen'));
       d.classList.add('chosen');
       refreshPreview();
+      if(navigator.vibrate) navigator.vibrate(18);
       spawnSparkle(d.getBoundingClientRect().left+40,d.getBoundingClientRect().top+30);
     };
     g.appendChild(d);
@@ -1415,6 +1456,7 @@ function buildAnimList(){
     d.onclick=()=>{
       if(draft.anims.includes(a.id)){if(draft.anims.length>1)draft.anims=draft.anims.filter(x=>x!==a.id);}
       else draft.anims.push(a.id);
+      if(navigator.vibrate) navigator.vibrate(18);
       buildAnimList();
       spawnSparkle(d.getBoundingClientRect().left+20,d.getBoundingClientRect().top+30);
     };
@@ -2092,6 +2134,7 @@ function buildMusicGrid(){
       draft.music=m.id;
       g.querySelectorAll('.music-card').forEach(x=>x.classList.remove('chosen'));
       d.classList.add('chosen');
+      if(navigator.vibrate) navigator.vibrate(18);
       spawnSparkle(d.getBoundingClientRect().left+20,d.getBoundingClientRect().top+30);
     };
     g.appendChild(d);
@@ -2139,6 +2182,7 @@ function showNameInput(btn){
   if(btn) btn.classList.add('chosen');
 }
 function wizNextOrFinish(){
+  if(navigator.vibrate) navigator.vibrate(wizStep===5?[30,10,30]:22);
   if(wizStep===5){ startShipSequence(); return; }
   if(wizStep===1){
     const inp=document.getElementById('nameInput');
@@ -2153,6 +2197,7 @@ function wizNext(){
 }
 function wizAutoNext(){if(wizStep<5) showWizStep(wizStep+1, true);}
 function wizBack(){
+  if(navigator.vibrate) navigator.vibrate(10);
   // 製作アニメーション中断
   if(craftAnimId){ cancelAnimationFrame(craftAnimId); craftAnimId=null; }
   _craftRemoveEvents();
@@ -2521,6 +2566,47 @@ function closeTrim(){
 
 /* カメラロール */
 document.addEventListener('DOMContentLoaded',()=>{
+  /* ===== タップ リップル（イベント委譲） ===== */
+  function _ripple(e){
+    const el=e.target.closest(
+      '.top-btn,.next-btn,.pbtn,.dbtn,.finish-btn,.trim-btn,.music-card,.anim-card'+
+      ',.sel-card,.saved-card,.char-btn,.cdot,.preset-name-btn,.back-btn'
+    );
+    if(!el) return;
+    const r=document.createElement('span');
+    r.className='ripple';
+    const rect=el.getBoundingClientRect();
+    const sz=Math.max(rect.width,rect.height)*2;
+    const cx=(e.touches?e.touches[0].clientX:e.clientX)-rect.left-sz/2;
+    const cy=(e.touches?e.touches[0].clientY:e.clientY)-rect.top-sz/2;
+    r.style.cssText=`width:${sz}px;height:${sz}px;left:${cx}px;top:${cy}px;`;
+    el.appendChild(r);
+    r.addEventListener('animationend',()=>r.remove());
+  }
+  document.addEventListener('touchstart',_ripple,{passive:true});
+  document.addEventListener('mousedown',_ripple);
+
+  /* ===== ウィザード スワイプ ナビゲーション ===== */
+  let _swX=0,_swY=0,_swEl=null;
+  const _pgWiz=document.getElementById('pgWiz');
+  _pgWiz.addEventListener('touchstart',e=>{
+    _swX=e.touches[0].clientX;
+    _swY=e.touches[0].clientY;
+    _swEl=e.target;
+  },{passive:true});
+  _pgWiz.addEventListener('touchend',e=>{
+    if(!_swEl) return;
+    // 入力欄・スライダー・Canvas内は無視
+    if(_swEl.closest('input,textarea,canvas,select,#trimModal,#craftPage,.craft-stage')) return;
+    const dx=e.changedTouches[0].clientX-_swX;
+    const dy=e.changedTouches[0].clientY-_swY;
+    if(Math.abs(dx)>65&&Math.abs(dy)<50){
+      if(dx<0) wizNextOrFinish();   // 左スワイプ → 次へ
+      else if(wizStep>1) wizBack(); // 右スワイプ → 戻る
+    }
+    _swEl=null;
+  },{passive:true});
+
   // 文字盤
   const fi=document.getElementById('photoInput');
   if(fi) fi.addEventListener('change',e=>{
