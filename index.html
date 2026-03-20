@@ -1358,7 +1358,7 @@ const MUSICS=[
   {id:'miniwaltz',ico:'🎻',label:'ミニチュアワルツ',   desc:'からくりとけいらしいメロディ'},
 ];
 const ROMAN=['','Ⅰ','Ⅱ','Ⅲ','Ⅳ','Ⅴ','Ⅵ','Ⅶ','Ⅷ','Ⅸ','Ⅹ','Ⅺ','Ⅻ'];
-const MAX=5;
+const MAX=10;
 const CLOCK_BODIES=[
   {id:'round',  label:'まる',   ico:'⭕', desc:'シンプルなまるい とけい'},
   {id:'panel',  label:'パネル', ico:'🎨', desc:'4まいのパネルが ひらく！'},
@@ -1390,6 +1390,8 @@ function goTo(toId,fromId,dir='forward'){
 
 /* WIZARD */
 function startWizard(){
+  const _saved=loadSaved();
+  if(_saved.length>=MAX){showToast(`ほぞんできるのは ${MAX}こまでだよ！ ふるいとけいを けしてね 🗑️`);return;}
   draft={name:'',clockBody:'round',faceColor:'#ffffff',handColor:'#ff6b6b',frameColor:'#ffd93d',numColor:'#444444',numberStyle:'arabic',character:'🐻',anims:['dance'],music:'chime',faceImage:null,charImage:null};
   wizStep=1;
   buildWizUI();
@@ -3128,14 +3130,14 @@ function drawClockSquare(canvas,data,useReal,tH,tM,tS){
   ctx.beginPath();ctx.roundRect(0,0,S,S,rr+6);ctx.fillStyle=data.frameColor||'#ffd93d';ctx.fill();ctx.restore();
   // Face
   ctx.save();ctx.beginPath();ctx.roundRect(8,8,S-16,S-16,rr);ctx.clip();
+  ctx.fillStyle=data.faceColor||'#ffffff';ctx.fillRect(0,0,S,S);
   if(data.faceImage){
-    const imgKey='_img_sq_'+data.id;
+    const imgKey='_img_'+data.id;
     if(!drawClock._cache) drawClock._cache={};
     let img=drawClock._cache[imgKey];
     if(!img||img._src!==data.faceImage){img=new Image();img._src=data.faceImage;img.src=data.faceImage;drawClock._cache[imgKey]=img;}
     if(img.complete&&img.naturalWidth>0) ctx.drawImage(img,0,0,S,S);
-    else{ctx.fillStyle='#fffdf5';ctx.fillRect(0,0,S,S);}
-  }else{ctx.fillStyle=data.faceColor||'#ffffff';ctx.fillRect(0,0,S,S);}
+  }
   // Numbers + ticks
   for(let i=1;i<=12;i++){
     const ang=i/12*Math.PI*2-Math.PI/2;
@@ -3171,17 +3173,18 @@ function drawClockArch(canvas,data,useReal,tH,tM,tS){
   }
   // Frame
   ctx.save();archShape(ctx,FR,bottomY+8);ctx.fillStyle=data.frameColor||'#ffd93d';ctx.shadowColor='rgba(0,0,0,.18)';ctx.shadowBlur=14;ctx.fill();ctx.restore();
-  // Face
+  // Face (clip to arch shape)
   ctx.save();archShape(ctx,R,bottomY);ctx.clip();
+  ctx.fillStyle=data.faceColor||'#ffffff';ctx.fillRect(0,0,S,S);
   if(data.faceImage){
-    const imgKey='_img_arch_'+data.id;
+    const imgKey='_img_'+data.id;
     if(!drawClock._cache) drawClock._cache={};
     let img=drawClock._cache[imgKey];
     if(!img||img._src!==data.faceImage){img=new Image();img._src=data.faceImage;img.src=data.faceImage;drawClock._cache[imgKey]=img;}
-    if(img.complete&&img.naturalWidth>0) ctx.drawImage(img,CX-R,CY-R,R*2,R*2);
-    else{ctx.fillStyle='#fffdf5';ctx.fill();}
-  }else{ctx.fillStyle=data.faceColor||'#ffffff';ctx.fill();}
-  // Numbers + ticks (skip those below arch bottom)
+    if(img.complete&&img.naturalWidth>0) ctx.drawImage(img,0,0,S,S);
+  }
+  ctx.restore();
+  // Numbers + ticks (outside clip, skip below arch bottom)
   for(let i=1;i<=12;i++){
     const ang=i/12*Math.PI*2-Math.PI/2;
     const nx=CX+Math.cos(ang)*R*.78,ny=CY+Math.sin(ang)*R*.78;
@@ -3197,7 +3200,6 @@ function drawClockArch(canvas,data,useReal,tH,tM,tS){
     if(y1>bottomY-4) continue;
     ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.strokeStyle='#ddd';ctx.lineWidth=1.5;ctx.stroke();
   }
-  ctx.restore();
   // Pendulum rod + bob
   const pendEnd=Math.min(bottomY+28,S-8);
   ctx.save();ctx.strokeStyle=data.handColor||'#ff6b6b';ctx.lineWidth=2.5;
