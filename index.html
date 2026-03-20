@@ -1011,6 +1011,20 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
   position:relative;overflow:hidden;
 }
 
+/* ===== ランクバー & 隠しパーツ & おまかせボタン ===== */
+.rank-bar{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  background:rgba(255,255,255,.75);border-radius:14px;
+  padding:6px 16px;margin:8px 0 2px;
+  font-family:'Nunito',sans-serif;font-size:.85rem;color:#aaa;
+  border:2px solid rgba(255,107,107,.15);
+}
+.rank-title{font-family:'Fredoka One',cursive;font-size:.95rem;color:var(--red);}
+.char-btn.locked{opacity:.5;cursor:default;position:relative;}
+.char-btn.locked::after{content:'🔒';position:absolute;bottom:-2px;right:-2px;font-size:.55rem;}
+.top-btn.c{background:linear-gradient(135deg,var(--orange),var(--yellow));color:#333;}
+.unlock-toast{font-size:1.1rem;}
+
 /* ===== STEP1: とけいのかたち ===== */
 .body-grid{
   display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:28px;
@@ -1042,12 +1056,17 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
         <div class="top-clock-wrap">
           <canvas id="topClockCanvas" width="160" height="160"></canvas>
         </div>
+        <div class="rank-bar" id="rankBar"></div>
         <div class="top-badges" id="topBadges"></div>
       </div>
       <div class="top-btns">
         <button class="top-btn a" onclick="startWizard()">
           <span class="ico">✨</span>
           <span class="txt">あたらしく つくる<small>オリジナルとけいを デザインしよう</small></span>
+        </button>
+        <button class="top-btn c" onclick="startRandom()">
+          <span class="ico">🎲</span>
+          <span class="txt">おまかせでつくる<small>ランダムな とけいを つくろう</small></span>
         </button>
         <button class="top-btn b" onclick="goTo('pgList','pgTop')">
           <span class="ico">📚</span>
@@ -1359,6 +1378,22 @@ const MUSICS=[
 ];
 const ROMAN=['','Ⅰ','Ⅱ','Ⅲ','Ⅳ','Ⅴ','Ⅵ','Ⅶ','Ⅷ','Ⅸ','Ⅹ','Ⅺ','Ⅻ'];
 const MAX=10;
+/* ===== 隠しキャラクター ===== */
+const HIDDEN_CHARS=[
+  {id:'butterfly',char:'🦋',label:'ちょうちょ',  hint:'3こ つくると でてくるよ！', unlockAt:3},
+  {id:'dragon',   char:'🐉',label:'ドラゴン',    hint:'6こ つくると でてくるよ！', unlockAt:6},
+  {id:'glowstar', char:'🌟',label:'ひかりのほし',hint:'10こ つくると でてくるよ！',unlockAt:10},
+  {id:'mage',     char:'🧙',label:'まほうつかい',hint:'20こ つくると でてくるよ！',unlockAt:20},
+];
+const TITLES=[
+  {min:0,  label:'⏱️ みならいとけいし'},
+  {min:3,  label:'🔧 いっぱしのとけいし'},
+  {min:5,  label:'⭐ とけいマスター'},
+  {min:10, label:'🏆 だいとけいし'},
+  {min:20, label:'👑 とけいのおうさま'},
+];
+const RANDOM_ADJ=['ふしぎな','きらきら','もふもふ','ぴかぴか','ふわふわ','どきどき','わくわく','にこにこ','ゆめの'];
+const RANDOM_NOUN=['とけい','クロック','じかん','しかけ'];
 const CLOCK_BODIES=[
   {id:'round',  label:'まる',   ico:'⭕', desc:'シンプルなまるい とけい'},
   {id:'panel',  label:'パネル', ico:'🎨', desc:'4まいのパネルが ひらく！'},
@@ -1370,6 +1405,57 @@ let draft={name:'',clockBody:'round',faceColor:'#ffffff',handColor:'#ff6b6b',fra
 let wizStep=1;
 let playData=null,playReal=true,playH=12,playM=0;
 let tickId=null,karTimer=null,lastMin=-1,audioCtx=null;
+
+/* ===== STATS / UNLOCK / RANDOM ===== */
+function loadStats(){try{return JSON.parse(localStorage.getItem('kk_stats')||'{"totalCreated":0,"unlocked":[]}');}catch{return{totalCreated:0,unlocked:[]};}}
+function saveStats(s){localStorage.setItem('kk_stats',JSON.stringify(s));}
+function getTitle(n){let t=TITLES[0];for(const r of TITLES){if(n>=r.min)t=r;}return t.label;}
+function checkUnlocks(stats){
+  const newItems=[];
+  for(const h of HIDDEN_CHARS){
+    if(stats.totalCreated>=h.unlockAt&&!stats.unlocked.includes(h.id)){
+      stats.unlocked.push(h.id);newItems.push(h);
+    }
+  }
+  return newItems;
+}
+function refreshRankBar(){
+  const el=document.getElementById('rankBar');if(!el)return;
+  const n=loadStats().totalCreated;
+  el.innerHTML=`<span class="rank-title">${getTitle(n)}</span><span class="rank-count">${n>0?n+'こ つくったよ！':'まだ つくってないよ'}</span>`;
+}
+function showUnlockToast(items){
+  items.forEach((h,i)=>setTimeout(()=>showToast(`✨ ${h.char} ${h.label} が つかえるように なったよ！`),i*900));
+}
+function randomClockName(){
+  return RANDOM_ADJ[Math.floor(Math.random()*RANDOM_ADJ.length)]+RANDOM_NOUN[Math.floor(Math.random()*RANDOM_NOUN.length)];
+}
+function startRandom(){
+  const saved=loadSaved();
+  if(saved.length>=MAX){showToast(`ほぞんできるのは ${MAX}こまでだよ！ ふるいとけいを けしてね 🗑️`);return;}
+  const stats=loadStats();
+  const availableChars=[...CHARS,...HIDDEN_CHARS.filter(h=>stats.unlocked.includes(h.id)).map(h=>h.char)];
+  const r=a=>a[Math.floor(Math.random()*a.length)];
+  const cl={
+    name:randomClockName(),
+    clockBody:r(CLOCK_BODIES.map(b=>b.id)),
+    faceColor:r(FACE_COLORS),handColor:r(HAND_COLORS),
+    frameColor:r(FRAME_COLORS),numColor:r(NUM_COLORS),
+    numberStyle:r(['arabic','roman','dots']),
+    character:r(availableChars),
+    anims:[r(['dance','bounce','spin','wave','split','door','hanabira'])],
+    music:r(MUSICS.map(m=>m.id)),
+    id:Date.now(),
+  };
+  saved.push(cl);saveSaved(saved);
+  stats.totalCreated++;
+  const newUnlocks=checkUnlocks(stats);
+  saveStats(stats);refreshRankBar();
+  if(newUnlocks.length>0)setTimeout(()=>showUnlockToast(newUnlocks),1800);
+  playData={...cl};playH=10;playM=10;playReal=false;
+  goTo('pgPlay','pgTop');
+  startTickWithSpinIn();
+}
 
 /* PAGE TRANSITIONS */
 function goTo(toId,fromId,dir='forward'){
@@ -1383,6 +1469,7 @@ function goTo(toId,fromId,dir='forward'){
   from.classList.remove('active');
   from.classList.add(dir==='forward'?'left':'right');
   if(toId==='pgList') renderList();
+  if(toId==='pgTop') refreshRankBar();
   // ウィザード画面のときだけフッターを表示
   const footer=document.getElementById('wizFooter');
   if(footer) footer.classList.toggle('visible', toId==='pgWiz');
@@ -1520,24 +1607,34 @@ function buildNumGrid(){
 }
 function buildCharGrid(){
   const g=document.getElementById('charGrid'); g.innerHTML='';
-  CHARS.forEach(c=>{
+  const unlockedIds=loadStats().unlocked;
+  const addCharBtn=(c,opts={})=>{
     const d=document.createElement('div');
     const isChosen=draft.character===c&&!draft.charImage;
-    d.className='char-btn'+(isChosen?' chosen':'');
-    d.textContent=c;
-    d.onclick=()=>{
-      draft.character=c; draft.charImage=null;
-      // カメラプレビューをリセット
-      const prev=document.getElementById('charPhotoPreview');
-      if(prev){prev.src='';prev.style.display='none';}
-      g.querySelectorAll('.char-btn').forEach(x=>x.classList.remove('chosen'));
-      d.classList.add('chosen');
-      if(navigator.vibrate) navigator.vibrate(30);
-      spawnSparkle(d.getBoundingClientRect().left+34,d.getBoundingClientRect().top+34);
-    };
+    const locked=opts.locked||false;
+    d.className='char-btn'+(isChosen&&!locked?' chosen':'')+(locked?' locked':'');
+    d.textContent=locked?'？':c;
+    if(opts.hint) d.title=opts.hint;
+    if(locked){
+      d.onclick=()=>showToast(`🔒 ${opts.hint||'ひみつのなかま'}`);
+    } else {
+      d.onclick=()=>{
+        draft.character=c; draft.charImage=null;
+        const prev=document.getElementById('charPhotoPreview');
+        if(prev){prev.src='';prev.style.display='none';}
+        g.querySelectorAll('.char-btn').forEach(x=>x.classList.remove('chosen'));
+        d.classList.add('chosen');
+        if(navigator.vibrate) navigator.vibrate(30);
+        spawnSparkle(d.getBoundingClientRect().left+34,d.getBoundingClientRect().top+34);
+      };
+    }
     g.appendChild(d);
+  };
+  CHARS.forEach(c=>addCharBtn(c));
+  HIDDEN_CHARS.forEach(h=>{
+    const isUnlocked=unlockedIds.includes(h.id);
+    addCharBtn(h.char,{locked:!isUnlocked,hint:isUnlocked?h.label:h.hint});
   });
-  // 画像選択済みの場合はプレビュー表示
   if(draft.charImage){
     const prev=document.getElementById('charPhotoPreview');
     if(prev){prev.src=draft.charImage;prev.style.display='block';}
@@ -2735,6 +2832,12 @@ function wizFinish(){
   if(saved.length>=MAX){showToast(`ほぞんできるのは ${MAX}こまでだよ！ ふるいとけいを けしてね 🗑️`);return;}
   const cl={...draft,id:Date.now()};
   saved.push(cl);saveSaved(saved);
+  // 作成回数・アンロック更新
+  const stats=loadStats();
+  stats.totalCreated++;
+  const newUnlocks=checkUnlocks(stats);
+  saveStats(stats);refreshRankBar();
+  if(newUnlocks.length>0) setTimeout(()=>showUnlockToast(newUnlocks),2000);
   const _ds=document.getElementById('doneAuthor'); if(_ds) _ds.textContent=`「${cl.name}」を つくったよ！🎊`;
   launchConfetti();
   goTo('pgDone','pgWiz');
@@ -4128,6 +4231,7 @@ function initTopClock(){
   if(pgTop.classList.contains('active')) startTopClock();
 }
 initTopClock();
+refreshRankBar();
 
 /* STORAGE */
 function loadSaved(){try{return JSON.parse(localStorage.getItem('kk_clocks')||'[]');}catch{return [];}}
