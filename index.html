@@ -1069,15 +1069,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
         <canvas id="wizMiniPreview" width="52" height="52" style="border-radius:50%;flex-shrink:0;filter:drop-shadow(0 2px 6px rgba(0,0,0,.15));"></canvas>
       </div>
 
-      <!-- s1 かたちをえらぶ -->
+      <!-- s1 なまえ -->
       <div class="step" id="s1">
-        <div class="step-title">🕰️ とけいのかたち</div>
-        <div class="step-hint">🕰️ すきなかたちを えらんでね！</div>
-        <div class="body-grid" id="bodyGrid"></div>
-      </div>
-
-      <!-- s2 なまえ -->
-      <div class="step" id="s2" style="display:none">
         <div class="step-title">📛 なまえは？</div>
         <div class="step-hint">✏️ とけいに なまえを つけよう！</div>
         <div class="preset-names" id="presetNames">
@@ -1087,6 +1080,13 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
           <button class="preset-name-btn custom-btn" id="customNameBtn" onclick="showNameInput(this)">✏️ じぶんでかく</button>
         </div>
         <input class="name-input" id="nameInput" type="text" placeholder="れい：ぼくのとけい" maxlength="12" style="display:none;margin-top:12px;">
+      </div>
+
+      <!-- s2 かたちをえらぶ -->
+      <div class="step" id="s2" style="display:none">
+        <div class="step-title">🕰️ とけいのかたち</div>
+        <div class="step-hint">🕰️ すきなかたちを えらんでね！</div>
+        <div class="body-grid" id="bodyGrid"></div>
       </div>
 
       <!-- s3 テーマカラー（文字盤＋わく） -->
@@ -2281,7 +2281,7 @@ function showNameInput(btn){
 function wizNextOrFinish(){
   if(navigator.vibrate) navigator.vibrate(wizStep===6?[30,10,30]:22);
   if(wizStep===6){ startShipSequence(); return; }
-  if(wizStep===2){
+  if(wizStep===1){
     const inp=document.getElementById('nameInput');
     const nm=(inp.style.display!=='none')?inp.value.trim():'';
     draft.name=nm||draft.name||'わたしのとけい';
@@ -2289,7 +2289,7 @@ function wizNextOrFinish(){
   showWizStep(wizStep+1, true);
 }
 function wizNext(){
-  if(wizStep===2){const nm=document.getElementById('nameInput').value.trim();draft.name=nm||draft.name||'わたしのとけい';}
+  if(wizStep===1){const nm=document.getElementById('nameInput').value.trim();draft.name=nm||draft.name||'わたしのとけい';}
   if(wizStep<6) showWizStep(wizStep+1, true);
 }
 function wizAutoNext(){if(wizStep<6) showWizStep(wizStep+1, true);}
