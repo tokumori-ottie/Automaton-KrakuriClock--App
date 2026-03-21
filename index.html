@@ -1058,6 +1058,94 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
 .body-card.chosen{border-color:var(--red);background:#fff5f5;animation:selSpring .3s cubic-bezier(.34,1.56,.64,1) forwards;}
 .body-card-label{font-family:'Fredoka One',cursive;font-size:.95rem;color:#888;}
 .body-card.chosen .body-card-label{color:var(--red);}
+
+/* ===== TIMER SETUP (pgTimer) ===== */
+.timer-head{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.timer-head-title{font-family:'Fredoka One',cursive;font-size:clamp(1.3rem,6vw,1.6rem);color:var(--red);}
+.timer-section{margin-bottom:24px;}
+.timer-section-title{font-family:'Fredoka One',cursive;font-size:clamp(1.1rem,5vw,1.3rem);color:#555;margin-bottom:12px;}
+/* 時計選択カード（タイマー用・横長） */
+.timer-clock-list{display:flex;flex-direction:column;gap:10px;}
+.timer-clock-card{
+  display:flex;align-items:center;gap:14px;
+  background:#fff;border:3px solid #eee;border-radius:18px;
+  padding:12px 16px;cursor:pointer;
+  transition:border-color .15s,background .15s;
+}
+.timer-clock-card.chosen{border-color:var(--red);background:#fff5f5;}
+.timer-clock-card:active{transform:scale(.97);}
+.timer-clock-card canvas{border-radius:50%;flex-shrink:0;filter:drop-shadow(0 2px 6px rgba(0,0,0,.12));}
+.timer-clock-name{font-family:'Fredoka One',cursive;font-size:1.1rem;color:#444;flex:1;}
+.timer-clock-check{font-size:1.4rem;opacity:0;transition:opacity .15s;}
+.timer-clock-card.chosen .timer-clock-check{opacity:1;}
+/* タイマー種別カード（2×2グリッド） */
+.timer-type-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.timer-type-card{
+  background:#fff;border:3px solid #eee;border-radius:20px;
+  padding:18px 12px 14px;cursor:pointer;text-align:center;
+  transition:border-color .15s,background .15s,transform .15s;
+}
+.timer-type-card:active{transform:scale(.93);}
+.timer-type-card.chosen{border-width:3px;background:#fffaf0;}
+.timer-type-ico{font-size:2.6rem;line-height:1;}
+.timer-type-label{font-family:'Fredoka One',cursive;font-size:1.05rem;margin-top:6px;}
+/* 時間選択チップ */
+.timer-dur-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.timer-dur-btn{
+  font-family:'Fredoka One',cursive;font-size:1.3rem;
+  background:#fff;border:3px solid #eee;border-radius:50px;
+  padding:10px 24px;cursor:pointer;
+  transition:border-color .15s,background .15s;
+}
+.timer-dur-btn.chosen{border-color:var(--red);background:#fff5f5;color:var(--red);}
+.timer-dur-btn:active{transform:scale(.93);}
+/* スタートボタン */
+.timer-start-btn{
+  width:100%;padding:22px;font-family:'Fredoka One',cursive;
+  font-size:clamp(1.4rem,6vw,1.8rem);border:none;border-radius:20px;
+  background:linear-gradient(135deg,var(--red),var(--orange));
+  color:#fff;cursor:pointer;letter-spacing:.05em;
+  box-shadow:0 6px 20px rgba(255,107,107,.45);
+  transition:transform .12s,box-shadow .12s;
+}
+.timer-start-btn:active{transform:scale(.96);box-shadow:0 3px 10px rgba(255,107,107,.3);}
+
+/* ===== TIMER RUN (pgTimerRun) ===== */
+.timer-run-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.timer-run-type{font-family:'Fredoka One',cursive;font-size:1.3rem;color:#555;}
+.timer-stop-btn{
+  font-family:'Fredoka One',cursive;font-size:1rem;
+  background:#f0f0f0;border:none;border-radius:50px;
+  padding:8px 18px;cursor:pointer;color:#888;
+}
+.timer-stop-btn:active{background:#e0e0e0;}
+.timer-canvas-wrap{display:flex;justify-content:center;margin:4px 0 12px;}
+.timer-countdown{
+  font-family:'Fredoka One',cursive;text-align:center;
+  font-size:clamp(3.5rem,16vw,5rem);color:#333;letter-spacing:.04em;
+  line-height:1;margin-bottom:8px;
+  transition:color .3s;
+}
+.timer-countdown.urgent{color:var(--red);animation:timerPulse .5s ease-in-out infinite alternate;}
+@keyframes timerPulse{from{transform:scale(1);}to{transform:scale(1.06);}}
+.timer-msg{
+  font-family:'Fredoka One',cursive;font-size:clamp(1.1rem,5vw,1.4rem);
+  color:#666;text-align:center;margin-bottom:16px;
+}
+.timer-done-overlay{
+  display:none;position:absolute;inset:0;
+  background:rgba(255,255,255,.92);
+  flex-direction:column;align-items:center;justify-content:center;
+  gap:16px;z-index:10;border-radius:inherit;
+}
+.timer-done-overlay.show{display:flex;}
+.timer-done-ico{font-size:4rem;animation:donePop .5s cubic-bezier(.34,1.56,.64,1);}
+.timer-done-txt{font-family:'Fredoka One',cursive;font-size:clamp(1.5rem,7vw,2rem);color:var(--red);text-align:center;}
+.timer-done-btns{display:flex;flex-direction:column;gap:10px;width:min(280px,85vw);}
+.timer-done-btn{
+  font-family:'Fredoka One',cursive;font-size:1.2rem;
+  border:none;border-radius:16px;padding:16px;cursor:pointer;
+}
 </style>
 </head>
 <body>
@@ -1089,6 +1177,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
         <button class="top-btn b" onclick="goTo('pgList','pgTop')">
           <span class="ico">📚</span>
           <span class="txt">ほぞんした とけい<small>つくった とけいを みる</small></span>
+        </button>
+        <button class="top-btn" style="background:linear-gradient(135deg,#4d96ff,#6bcb77);" onclick="openTimerSetup()">
+          <span class="ico">⏱️</span>
+          <span class="txt">タイマー<small>とけいでじかんをはかろう</small></span>
         </button>
       </div>
     </div>
@@ -1266,6 +1358,63 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
     </div>
   </div>
 </div>
+
+  <!-- TIMER SETUP -->
+  <div id="pgTimer" class="page right">
+    <div class="page-inner">
+      <div class="timer-head">
+        <button class="back-btn" onclick="goTo('pgTop','pgTimer','back')">⬅️</button>
+        <div class="timer-head-title">⏱️ タイマー</div>
+      </div>
+
+      <!-- Section 1: 時計選択 -->
+      <div class="timer-section">
+        <div class="timer-section-title">🕰️ どのとけいを つかう？</div>
+        <div class="timer-clock-list" id="timerClockList"></div>
+      </div>
+
+      <!-- Section 2: タイマー種別（時計選択後に表示） -->
+      <div class="timer-section" id="timerTypeSection" style="display:none">
+        <div class="timer-section-title">🎯 なにを するの？</div>
+        <div class="timer-type-grid" id="timerTypeGrid"></div>
+      </div>
+
+      <!-- Section 3: 時間選択（種別選択後に表示） -->
+      <div class="timer-section" id="timerDurSection" style="display:none">
+        <div class="timer-section-title">⏱️ なんぷん？</div>
+        <div class="timer-dur-row" id="timerDurRow"></div>
+      </div>
+
+      <!-- スタートボタン（全選択後に表示） -->
+      <div id="timerStartWrap" style="display:none;margin-top:8px;">
+        <button class="timer-start-btn" onclick="startTimerRun()">▶️ スタート！</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIMER RUN -->
+  <div id="pgTimerRun" class="page right" style="position:relative;">
+    <div class="page-inner">
+      <div class="timer-run-head">
+        <div class="timer-run-type" id="timerRunTypeLabel"></div>
+        <button class="timer-stop-btn" onclick="stopTimerRun()">⏹️ やめる</button>
+      </div>
+      <div class="timer-canvas-wrap">
+        <canvas id="timerRunCanvas" width="240" height="240" style="filter:drop-shadow(0 8px 24px rgba(0,0,0,.15));"></canvas>
+      </div>
+      <div class="timer-countdown" id="timerCountdown">00:00</div>
+      <div class="timer-msg" id="timerMsg"></div>
+    </div>
+    <!-- 完了オーバーレイ -->
+    <div class="timer-done-overlay" id="timerDoneOverlay">
+      <div class="timer-done-ico" id="timerDoneIco">🎉</div>
+      <div class="timer-done-txt" id="timerDoneTxt">できたよ！</div>
+      <div class="timer-done-btns">
+        <button class="timer-done-btn" style="background:var(--red);color:#fff;" onclick="restartTimer()">🔁 もういちど</button>
+        <button class="timer-done-btn" style="background:#f0f0f0;color:#555;" onclick="goTo('pgTop','pgTimerRun','back')">🏠 おわり</button>
+      </div>
+    </div>
+  </div>
 
 <!-- CRAFT PAGE (DOM版・Canvas不使用) -->
 <div id="craftPage">
@@ -4327,6 +4476,222 @@ initTopClock();
 refreshRankBar();
 
 /* STORAGE */
+/* ===== TIMER ===== */
+const TIMER_TYPES=[
+  {id:'kataduke',ico:'🧸',label:'おかたづけ',  msg:'おへやを きれいにしよう！',  color:'#6bcb77'},
+  {id:'hamigaki', ico:'🦷',label:'はみがき',    msg:'ぴかぴかに みがこう！',      color:'#4d96ff'},
+  {id:'tearai',   ico:'🖐️',label:'てあらい',    msg:'バイキンを やっつけよう！',  color:'#ff9a3c'},
+  {id:'okigae',   ico:'👕',label:'おきがえ',    msg:'ぱぱっと かえよう！',        color:'#c77dff'},
+];
+const TIMER_DURATIONS=[1,3,5,10]; // 分
+
+let timerClockData=null;  // 選択した時計データ
+let timerType=null;       // 選択したタイマー種別
+let timerDurationSec=0;   // 設定時間（秒）
+let timerRemain=0;        // 残り秒数
+let timerIntervalId=null;
+let timerRunning=false;
+let timerHiddenAt=null;   // バックグラウンド時刻記録
+
+function openTimerSetup(){
+  const saved=loadSaved();
+  if(saved.length===0){showToast('とけいが まだないよ！さきに つくってね 🕰️');return;}
+  timerClockData=null; timerType=null; timerDurationSec=0;
+  renderTimerClockList();
+  // 種別・時間・スタートをリセット
+  document.getElementById('timerTypeSection').style.display='none';
+  document.getElementById('timerDurSection').style.display='none';
+  document.getElementById('timerStartWrap').style.display='none';
+  document.getElementById('timerTypeGrid').innerHTML='';
+  document.getElementById('timerDurRow').innerHTML='';
+  goTo('pgTimer','pgTop');
+}
+function renderTimerClockList(){
+  const list=document.getElementById('timerClockList');
+  list.innerHTML='';
+  loadSaved().forEach(cl=>{
+    const card=document.createElement('div');
+    card.className='timer-clock-card'+(timerClockData&&timerClockData.id===cl.id?' chosen':'');
+    // ミニキャンバス
+    const cv=document.createElement('canvas');
+    cv.width=56; cv.height=56;
+    drawClock(cv,cl,false,10,10,0);
+    const name=document.createElement('div');
+    name.className='timer-clock-name';
+    name.textContent=cl.name||'とけい';
+    const chk=document.createElement('div');
+    chk.className='timer-clock-check';
+    chk.textContent='✅';
+    card.append(cv,name,chk);
+    card.onclick=()=>selectTimerClock(cl.id);
+    list.appendChild(card);
+  });
+}
+function selectTimerClock(id){
+  timerClockData=loadSaved().find(c=>c.id===id);
+  if(!timerClockData)return;
+  // カード選択状態更新
+  renderTimerClockList();
+  // 種別グリッド構築・表示
+  const sec=document.getElementById('timerTypeSection');
+  const grid=document.getElementById('timerTypeGrid');
+  grid.innerHTML='';
+  TIMER_TYPES.forEach(t=>{
+    const card=document.createElement('div');
+    card.className='timer-type-card';
+    card.style.cssText=`border-color:${t.color}40;`;
+    card.innerHTML=`<div class="timer-type-ico">${t.ico}</div><div class="timer-type-label" style="color:${t.color};">${t.label}</div>`;
+    card.onclick=()=>selectTimerType(t.id);
+    grid.appendChild(card);
+  });
+  sec.style.display='';
+  // 以降をリセット
+  timerType=null; timerDurationSec=0;
+  document.getElementById('timerDurSection').style.display='none';
+  document.getElementById('timerStartWrap').style.display='none';
+  sec.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function selectTimerType(id){
+  timerType=TIMER_TYPES.find(t=>t.id===id);
+  if(!timerType)return;
+  // カード選択状態更新
+  document.querySelectorAll('#timerTypeGrid .timer-type-card').forEach((c,i)=>{
+    const selected=TIMER_TYPES[i].id===id;
+    c.classList.toggle('chosen',selected);
+    c.style.cssText=`border-color:${selected?timerType.color:TIMER_TYPES[i].color+'40'};background:${selected?timerType.color+'18':'#fff'};`;
+  });
+  // 時間選択表示
+  const durSec=document.getElementById('timerDurSection');
+  const row=document.getElementById('timerDurRow');
+  row.innerHTML='';
+  TIMER_DURATIONS.forEach(m=>{
+    const btn=document.createElement('button');
+    btn.className='timer-dur-btn';
+    btn.textContent=`${m}ふん`;
+    btn.onclick=()=>selectTimerDuration(m,btn);
+    row.appendChild(btn);
+  });
+  durSec.style.display='';
+  timerDurationSec=0;
+  document.getElementById('timerStartWrap').style.display='none';
+  durSec.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function selectTimerDuration(min,btn){
+  timerDurationSec=min*60;
+  document.querySelectorAll('#timerDurRow .timer-dur-btn').forEach(b=>b.classList.remove('chosen'));
+  btn.classList.add('chosen');
+  const wrap=document.getElementById('timerStartWrap');
+  wrap.style.display='';
+  wrap.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function startTimerRun(){
+  if(!timerClockData||!timerType||timerDurationSec<=0)return;
+  timerRemain=timerDurationSec;
+  // ランページ初期化
+  document.getElementById('timerRunTypeLabel').innerHTML=`${timerType.ico} ${timerType.label}`;
+  document.getElementById('timerMsg').textContent=timerType.msg;
+  document.getElementById('timerDoneOverlay').classList.remove('show');
+  const cd=document.getElementById('timerCountdown');
+  cd.classList.remove('urgent');
+  updateTimerDisplay();
+  goTo('pgTimerRun','pgTimer');
+  // 時計描画
+  drawClock(document.getElementById('timerRunCanvas'),timerClockData,false,12,0,0);
+  // タイマー開始
+  timerRunning=true;
+  if(timerIntervalId)clearInterval(timerIntervalId);
+  timerIntervalId=setInterval(timerTick,1000);
+}
+function timerTick(){
+  timerRemain--;
+  updateTimerDisplay();
+  playTimerTickSound();
+  if(timerRemain<=0){
+    clearInterval(timerIntervalId);
+    timerRunning=false;
+    timerComplete();
+  } else if(timerRemain<=10){
+    document.getElementById('timerCountdown').classList.add('urgent');
+  }
+}
+function updateTimerDisplay(){
+  const m=Math.floor(timerRemain/60);
+  const s=timerRemain%60;
+  document.getElementById('timerCountdown').textContent=
+    String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  // 時計の針をカウントダウンに連動（残り時間を分針として表示）
+  const totalSec=timerDurationSec;
+  const ratio=timerRemain/totalSec;
+  const dispMin=Math.floor(ratio*60);
+  const dispSec=Math.floor((ratio*60-dispMin)*60);
+  drawClock(document.getElementById('timerRunCanvas'),timerClockData,false,12,dispMin,dispSec);
+}
+function timerComplete(){
+  // からくり発動（pgTimerRunページのcanvasで）
+  playTimerCompleteSound();
+  const overlay=document.getElementById('timerDoneOverlay');
+  document.getElementById('timerDoneIco').textContent=timerType.ico;
+  document.getElementById('timerDoneTxt').textContent=`${timerType.label} できたよ！🎉`;
+  overlay.classList.add('show');
+  launchConfetti(timerClockData?[timerClockData.faceColor,timerClockData.frameColor,timerClockData.handColor].filter(Boolean):[]);
+}
+function stopTimerRun(){
+  if(timerIntervalId)clearInterval(timerIntervalId);
+  timerRunning=false;
+  goTo('pgTimer','pgTimerRun','back');
+}
+function restartTimer(){
+  document.getElementById('timerDoneOverlay').classList.remove('show');
+  startTimerRun();
+}
+// バックグラウンドで時間が経過した場合の補正
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden&&timerRunning){
+    timerHiddenAt=Date.now();
+  } else if(!document.hidden&&timerRunning&&timerHiddenAt){
+    const elapsed=Math.floor((Date.now()-timerHiddenAt)/1000);
+    timerHiddenAt=null;
+    timerRemain=Math.max(0,timerRemain-elapsed);
+    updateTimerDisplay();
+    if(timerRemain<=0){
+      if(timerIntervalId)clearInterval(timerIntervalId);
+      timerRunning=false;
+      timerComplete();
+    }
+  }
+});
+// タイマー用サウンド
+function playTimerTickSound(){
+  try{
+    const ac=getAC();
+    const o=ac.createOscillator();
+    const g=ac.createGain();
+    o.connect(g);g.connect(ac.destination);
+    o.type='square';o.frequency.value=1200;
+    g.gain.setValueAtTime(.06,ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.05);
+    o.start(ac.currentTime);o.stop(ac.currentTime+.05);
+  }catch(e){}
+}
+function playTimerCompleteSound(){
+  // ファンファーレ（短い3音）
+  try{
+    const ac=getAC();
+    const notes=[523,659,784]; // C5-E5-G5
+    notes.forEach((freq,i)=>{
+      const o=ac.createOscillator();
+      const g=ac.createGain();
+      o.connect(g);g.connect(ac.destination);
+      o.type='sine';o.frequency.value=freq;
+      const t=ac.currentTime+i*0.18;
+      g.gain.setValueAtTime(.001,t);
+      g.gain.linearRampToValueAtTime(.3,t+.05);
+      g.gain.exponentialRampToValueAtTime(.001,t+.35);
+      o.start(t);o.stop(t+.35);
+    });
+  }catch(e){}
+}
+
 function loadSaved(){try{return JSON.parse(localStorage.getItem('kk_clocks')||'[]');}catch{return [];}}
 function saveSaved(a){localStorage.setItem('kk_clocks',JSON.stringify(a));}
 
