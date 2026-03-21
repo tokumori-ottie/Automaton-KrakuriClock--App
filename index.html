@@ -1006,6 +1006,24 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',
   100%{transform:scale(1);}
 }
 
+/* ===== ウィザード選択時プレビューフラッシュ ===== */
+/* 色・スタイル変更時：ぱっと明るくなってスケールバウンス */
+@keyframes previewFlash{
+  0%  {transform:scale(1);    filter:brightness(1);}
+  18% {transform:scale(1.10); filter:brightness(1.55);}
+  55% {transform:scale(1.04); filter:brightness(1.12);}
+  100%{transform:scale(1);    filter:brightness(1);}
+}
+/* キャラ選択時：ぽよんと大きく弾む */
+@keyframes previewPop{
+  0%  {transform:scale(.88);}
+  45% {transform:scale(1.14);}
+  72% {transform:scale(1.05);}
+  100%{transform:scale(1);}
+}
+.preview-flash{animation:previewFlash .32s cubic-bezier(.34,1.56,.64,1) forwards;}
+.preview-pop  {animation:previewPop   .38s cubic-bezier(.34,1.56,.64,1) forwards;}
+
 /* ===== リップル対象ボタン（position:relative + overflow:hidden が必要） ===== */
 .top-btn,.next-btn,.pbtn,.dbtn,.finish-btn,.trim-btn,.saved-card,.preset-name-btn,.back-btn{
   position:relative;overflow:hidden;
@@ -1581,7 +1599,7 @@ function buildColorRowBig(id,colors,key){
       draft[key]=c;
       row.querySelectorAll('.cdot').forEach(x=>x.classList.remove('chosen'));
       d.classList.add('chosen');
-      refreshPreview();
+      refreshPreviewWithFeedback('click');
       if(navigator.vibrate) navigator.vibrate(18);
       spawnSparkle(d.getBoundingClientRect().left+24,d.getBoundingClientRect().top+24);
     };
@@ -1598,7 +1616,7 @@ function buildNumGrid(){
       draft.numberStyle=ns.id;
       g.querySelectorAll('.sel-card').forEach(x=>x.classList.remove('chosen'));
       d.classList.add('chosen');
-      refreshPreview();
+      refreshPreviewWithFeedback('gear');
       if(navigator.vibrate) navigator.vibrate(18);
       spawnSparkle(d.getBoundingClientRect().left+40,d.getBoundingClientRect().top+30);
     };
@@ -1624,6 +1642,7 @@ function buildCharGrid(){
         if(prev){prev.src='';prev.style.display='none';}
         g.querySelectorAll('.char-btn').forEach(x=>x.classList.remove('chosen'));
         d.classList.add('chosen');
+        refreshPreviewWithFeedback('pop');
         if(navigator.vibrate) navigator.vibrate(30);
         spawnSparkle(d.getBoundingClientRect().left+34,d.getBoundingClientRect().top+34);
       };
@@ -2334,6 +2353,7 @@ function buildMusicGrid(){
       draft.music=m.id;
       g.querySelectorAll('.music-card').forEach(x=>x.classList.remove('chosen'));
       d.classList.add('chosen');
+      playSelectSound('note');
       if(navigator.vibrate) navigator.vibrate(18);
       spawnSparkle(d.getBoundingClientRect().left+20,d.getBoundingClientRect().top+30);
     };
@@ -2862,6 +2882,79 @@ function startPreviewTick(){
 }
 function stopPreviewTick(){
   if(previewTickId){cancelAnimationFrame(previewTickId);previewTickId=null;}
+}
+
+/* ===== ウィザード選択フィードバック：機械音 + プレビューアニメ ===== */
+// type: 'click'=色ドット / 'pop'=キャラ / 'gear'=スタイル・アニメ / 'note'=音楽
+function playSelectSound(type){
+  try{
+    const a=getAC();
+    const t=a.currentTime;
+    if(type==='click'){
+      // カチッ：高周波の短いクリック（歯車が噛み合う音）
+      const o=a.createOscillator(),g=a.createGain(),f=a.createBiquadFilter();
+      f.type='bandpass'; f.frequency.value=1400; f.Q.value=0.6;
+      o.connect(f); f.connect(g); g.connect(a.destination);
+      o.type='square';
+      o.frequency.setValueAtTime(1000,t);
+      o.frequency.exponentialRampToValueAtTime(380,t+0.045);
+      g.gain.setValueAtTime(0.22,t);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.07);
+      o.start(t); o.stop(t+0.08);
+    } else if(type==='pop'){
+      // ポンッ：柔らかい泡が弾ける音（キャラ選択）
+      const o=a.createOscillator(),g=a.createGain();
+      o.connect(g); g.connect(a.destination);
+      o.type='sine';
+      o.frequency.setValueAtTime(540,t);
+      o.frequency.exponentialRampToValueAtTime(180,t+0.14);
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(0.32,t+0.012);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.18);
+      o.start(t); o.stop(t+0.19);
+    } else if(type==='gear'){
+      // ガチャッ：2連クリック（部品がはまる音、スタイル選択）
+      [0,0.065].forEach((dt,i)=>{
+        const o=a.createOscillator(),g=a.createGain();
+        o.connect(g); g.connect(a.destination);
+        o.type='square';
+        o.frequency.setValueAtTime(700-i*120,t+dt);
+        o.frequency.exponentialRampToValueAtTime(220,t+dt+0.04);
+        g.gain.setValueAtTime(0.18,t+dt);
+        g.gain.exponentialRampToValueAtTime(0.001,t+dt+0.055);
+        o.start(t+dt); o.stop(t+dt+0.07);
+      });
+    } else if(type==='note'){
+      // ポロン：短い音符（音楽選択）
+      [[NOTE.E5,0],[NOTE.G5,0.09]].forEach(([freq,dt])=>{
+        const o=a.createOscillator(),g=a.createGain();
+        o.connect(g); g.connect(a.destination);
+        o.type='sine';
+        o.frequency.value=freq;
+        g.gain.setValueAtTime(0,t+dt);
+        g.gain.linearRampToValueAtTime(0.22,t+dt+0.018);
+        g.gain.exponentialRampToValueAtTime(0.001,t+dt+0.22);
+        o.start(t+dt); o.stop(t+dt+0.24);
+      });
+    }
+  }catch(e){}
+}
+
+// プレビューキャンバスにアニメクラスを付与（再描画と両立させるためCSS側で処理）
+function triggerPreviewAnim(type){
+  const cid=previewMap[wizStep];
+  const c=document.getElementById(cid); if(!c) return;
+  const cls=type==='pop'?'preview-pop':'preview-flash';
+  c.classList.remove('preview-flash','preview-pop');
+  void c.offsetWidth; // リフローでアニメを再起動（同じ要素に連続で付けるため）
+  c.classList.add(cls);
+}
+
+// 色・スタイル変更時に呼ぶ：音+プレビューアニメ+既存refresh
+function refreshPreviewWithFeedback(soundType){
+  refreshPreview();
+  playSelectSound(soundType);
+  triggerPreviewAnim(soundType==='pop'?'pop':'flash');
 }
 
 // ヘッダーのミニプレビュー（段階的に組み上がる）
