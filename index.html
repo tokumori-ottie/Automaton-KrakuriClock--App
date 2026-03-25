@@ -4632,11 +4632,12 @@ function updateTimerDisplay(){
   const s=timerRemain%60;
   document.getElementById('timerCountdown').textContent=
     String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
-  // 時計の針をカウントダウンに連動（残り時間を分針として表示）
-  const totalSec=timerDurationSec;
-  const ratio=timerRemain/totalSec;
-  const dispMin=Math.floor(ratio*60);
-  const dispSec=Math.floor((ratio*60-dispMin)*60);
+  // 経過時間で分針を時計回りに進める（0→60分 = 一周）
+  const elapsed=timerDurationSec-timerRemain;
+  const ratio=timerDurationSec>0?elapsed/timerDurationSec:0;
+  const rawMin=ratio*60;
+  const dispMin=Math.floor(rawMin);
+  const dispSec=Math.floor((rawMin-dispMin)*60);
   drawClock(document.getElementById('timerRunCanvas'),timerClockData,false,12,dispMin,dispSec);
 }
 function timerComplete(){
